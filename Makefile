@@ -42,6 +42,9 @@ clean:
 BIN_CRATE_FILE_PATH = $(SRC_DIR)/$(1)/main.rs
 LIB_CRATE_FILE_PATH = $(SRC_DIR)/lib$(1)/lib.rs
 
+BIN_CRATE_SRC = $(wildcard $(SRC_DIR)/$(1)/*.rs)
+LIB_CRATE_SRC = $(wildcard $(SRC_DIR)/lib$(1)/*.rs)
+
 BIN_TARGET_PATH  = $(call BIN_PATH,$(1))
 LIB_TARGET_PATH  = $(call STAMP_PATH,$(1))
 TEST_TARGET_PATH = $(call TEST_PATH,$(1))
@@ -52,7 +55,7 @@ TEST_RUSTC_CMD = $(RUSTC) $(RUSTC_TEST_FLAGS) $(CRATE_FILE_$(1)) -o $(2)
 
 define CRATE_DEFINE
 CRATE_FILE_$(2) := $$(call $(1)_CRATE_FILE_PATH,$(2))
-SRC_FILE_$(2)   := $$(wildcard $(SRC_DIR)/$(2)/*.rs)
+SRC_FILE_$(2)   := $$(call $(1)_CRATE_SRC,$(2))
 DEP_STAMP_$(2)  := $(foreach crate,$(DEPS_$(2)),$(call STAMP_PATH,$(crate)))
 
 test-$(2): $$(call TEST_PATH,$(2))
