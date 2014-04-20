@@ -9,6 +9,10 @@ Powered by [rustlang](http://www.rust-lang.org/).
 
 ## TODOs
 
-* roff generator
-* sample command line generator (expand SYNOPSIS)
-* distinguish between variables and keywords
+* more funcions
+  * roff generator
+  * sample command line generator (expand SYNOPSIS)
+  * distinguish between variables and keywords
+  * separate normalizer and AST constructor
+* documents (usage and comments in codes)
+* tests
