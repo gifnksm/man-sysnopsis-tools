@@ -5,4 +5,5 @@ pub use token::Tokenizer;
 pub use parser::parse;
 
 pub mod token;
+pub mod ast;
 pub mod parser;
