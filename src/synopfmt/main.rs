@@ -1,4 +1,4 @@
-#![crate_id = "synopopt"]
+#![crate_id = "synopfmt"]
 
 extern crate synop;
 

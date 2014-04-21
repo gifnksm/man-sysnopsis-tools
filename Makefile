@@ -1,7 +1,7 @@
-BIN_CRATE = synopopt
+BIN_CRATE = synopfmt
 LIB_CRATE = synop
 
-DEPS_synopopt = synop
+DEPS_synopfmt = synop
 
 RUSTC_LINT_FLAGS = \
 	-D warnings \
