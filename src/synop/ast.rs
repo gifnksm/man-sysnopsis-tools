@@ -3,10 +3,10 @@ use token::Token;
 #[deriving(Eq, Show, Clone)]
 pub enum Expr {
     Tok(Token),
-    Seq(~[~Expr]),
+    Seq(Vec<Expr>),
     Opt(~Expr),
     Repeat(~Expr),
-    Select(~[~Expr])
+    Select(Vec<Expr>)
 }
 
 impl Expr {
@@ -17,7 +17,7 @@ impl Expr {
                 s.iter()
                     .map(|expr| {
                         let p = expr.pretty();
-                        match **expr {
+                        match *expr {
                             Tok(_) | Opt(_) | Repeat(_) => p,
                             Seq(_) | Select(_) => format!("\\{{}\\}", p)
                         }
@@ -37,7 +37,7 @@ impl Expr {
                     .map(|expr| {
                         let p = expr.pretty();
                         match *expr {
-                            ~Select(_) => format!("\\{{}\\}", p),
+                            Select(_) => format!("\\{{}\\}", p),
                             _ => p
                         }
                     })
@@ -53,16 +53,16 @@ impl Expr {
                 let mut v = Vec::new();
                 for x in xs.iter().filter_map(|x| x.normalize()) {
                     match x {
-                        Seq(x) => v.push_all(x),
-                        _      => v.push(~x)
+                        Seq(x) => v.push_all_move(x),
+                        _      => v.push(x)
                     }
                 }
                 if v.is_empty() {
                     None
                 } else if v.len() == 1 {
-                    Some(*v.pop().unwrap())
+                    Some(v.pop().unwrap())
                 } else {
-                    Some(Seq(v.as_slice().to_owned()))
+                    Some(Seq(v))
                 }
             }
             Opt(ref x) => {
@@ -86,24 +86,24 @@ impl Expr {
                 let mut v = Vec::new();
                 for x in xs.iter().filter_map(|x| x.normalize()) {
                     match x {
-                        Select(x) => v.push_all(x),
+                        Select(x) => v.push_all_move(x),
                         Opt(~Select(x)) => {
                             has_opt = true;
-                            v.push_all(x)
+                            v.push_all_move(x)
                         },
                         Opt(x) => {
                             has_opt = true;
-                            v.push(x)
+                            v.push(*x)
                         }
-                        _         => v.push(~x)
+                        _ => v.push(x)
                     }
                 }
                 if v.is_empty() {
                     None
                 } else if v.len() == 1 {
-                    Some(*v.pop().unwrap())
+                    Some(v.pop().unwrap())
                 } else {
-                    Some(Select(v.as_slice().to_owned()))
+                    Some(Select(v))
                 }.map(|sel| {
                     if has_opt {
                         Opt(~sel)
@@ -148,14 +148,14 @@ mod tests {
             assert_eq!(result, input.normalize());
         }
 
-        check(Some(Tok(Text(~"aa"))), Seq(~[~Tok(Text(~"aa"))]));
-        check(None, Seq(~[]));
-        check(None, Opt(~Seq(~[])));
-        check(None, Opt(~Opt(~Seq(~[]))));
-        check(None, Opt(~Opt(~Opt(~Seq(~[])))));
+        check(Some(Tok(Text(~"aa"))), Seq(vec!(Tok(Text(~"aa")))));
+        check(None, Seq(vec!()));
+        check(None, Opt(~Seq(vec!())));
+        check(None, Opt(~Opt(~Seq(vec!()))));
+        check(None, Opt(~Opt(~Opt(~Seq(vec!())))));
         check(Some(Repeat(~Tok(Text(~"aa")))), Repeat(~Repeat(~Tok(Text(~"aa")))));
-        check(Some(Tok(Text(~"aa"))), Select(~[~Tok(Text(~"aa"))]));
-        check(Some(Seq(~[~Tok(Text(~"a")), ~Tok(Text(~"b")), ~Tok(Text(~"c"))])),
-              Seq(~[~Seq(~[~Tok(Text(~"a")), ~Tok(Text(~"b"))]), ~Tok(Text(~"c"))]));
+        check(Some(Tok(Text(~"aa"))), Select(vec!(Tok(Text(~"aa")))));
+        check(Some(Seq(vec!(Tok(Text(~"a")), Tok(Text(~"b")), Tok(Text(~"c"))))),
+              Seq(vec!(Seq(vec!(Tok(Text(~"a")), Tok(Text(~"b")))), Tok(Text(~"c")))));
     }
 }
