@@ -1,4 +1,3 @@
-use std::mem;
 use token::Token;
 
 #[deriving(Eq, Show, Clone)]
@@ -20,8 +19,7 @@ impl Expr {
                         let p = expr.pretty();
                         match **expr {
                             Tok(_) | Opt(_) | Repeat(_) => p,
-                            Select(_) => format!("\\{{}\\}", p),
-                            _ => fail!("{}", expr)
+                            Seq(_) | Select(_) => format!("\\{{}\\}", p)
                         }
                     }).collect::<~[~str]>()
                     .connect(" ")
@@ -30,81 +28,100 @@ impl Expr {
             Repeat(ref e) => {
                 let p = e.pretty();
                 match **e {
-                    Tok(_) => format!("{}...", p),
+                    Tok(_) | Opt(_) | Repeat(_) => format!("{}...", p),
                     Seq(_) | Select(_) => format!("\\{{}\\}...", p),
-                    _ => fail!("{}", e)
                 }
             },
             Select(ref s) => {
                 s.iter()
-                    .map(|expr| expr.pretty())
+                    .map(|expr| {
+                        let p = expr.pretty();
+                        match *expr {
+                            ~Select(_) => format!("\\{{}\\}", p),
+                            _ => p
+                        }
+                    })
                     .collect::<~[~str]>()
                     .connect(" | ")
             }
         }
     }
 
-    pub fn new_tok(tok: Token) -> Expr { Tok(tok) }
-
-    pub fn new_seq(v: Vec<~Expr>) -> Expr {
-        if v.is_empty() {
-            fail!("Empty seq found. {}", v)
-        }
-
-        let mut output = v.move_iter().flat_map(|e| {
-            match e {
-                ~Seq(x) => x.move_iter(),
-                x       => (~[x]).move_iter()
+    pub fn normalize(&self) -> Option<Expr> {
+        match *self {
+            Seq(ref xs) => {
+                let mut v = Vec::new();
+                for x in xs.iter().filter_map(|x| x.normalize()) {
+                    match x {
+                        Seq(x) => v.push_all(x),
+                        _      => v.push(~x)
+                    }
+                }
+                if v.is_empty() {
+                    None
+                } else if v.len() == 1 {
+                    Some(*v.pop().unwrap())
+                } else {
+                    Some(Seq(v.as_slice().to_owned()))
+                }
             }
-        }).collect::<Vec<~Expr>>();
-
-        if output.len() == 1 {
-            *output.shift().unwrap()
-        } else {
-            Seq(output.as_slice().to_owned())
-        }
-    }
-
-    pub fn new_opt(expr: Expr) -> Expr {
-        match expr {
-            Opt(x) => Opt(x),
-            x      => Opt(~x)
-        }
-    }
-
-    pub fn new_repeat(expr: Expr) -> Expr {
-        match expr {
-            Repeat(x) => Repeat(x),
-            _         => Repeat(~expr)
-        }
-    }
-
-    pub fn new_select(mut  v: Vec<~Expr>) -> Expr {
-        if v.len() == 1 { return *v.pop().unwrap() }
-
-        let mut has_opt = false;
-        let mut sel = v.move_iter().map(|e| {
-            match e {
-                ~Opt(x) => { has_opt = true; x },
-                x => x
+            Opt(ref x) => {
+                x.normalize().map(|x| {
+                    match x {
+                        Opt(x) => Opt(x),
+                        _      => Opt(~x)
+                    }
+                })
             }
-        }).collect::<Vec<_>>();
-        if has_opt { return Expr::new_opt(Expr::new_select(sel)) }
-
-        for e in mem::replace(&mut sel, Vec::new()).move_iter() {
-            match e {
-                ~Select(arg) => sel.extend(arg.move_iter()),
-                x => sel.push(x)
+            Repeat(~Repeat(ref x)) => {
+                x.normalize().map(|x| {
+                    match x {
+                        Repeat(x) => Repeat(x),
+                        _ => Repeat(~x)
+                    }
+                })
+            },
+            Select(ref xs) => {
+                let mut has_opt = false;
+                let mut v = Vec::new();
+                for x in xs.iter().filter_map(|x| x.normalize()) {
+                    match x {
+                        Select(x) => v.push_all(x),
+                        Opt(~Select(x)) => {
+                            has_opt = true;
+                            v.push_all(x)
+                        },
+                        Opt(x) => {
+                            has_opt = true;
+                            v.push(x)
+                        }
+                        _         => v.push(~x)
+                    }
+                }
+                if v.is_empty() {
+                    None
+                } else if v.len() == 1 {
+                    Some(*v.pop().unwrap())
+                } else {
+                    Some(Select(v.as_slice().to_owned()))
+                }.map(|sel| {
+                    if has_opt {
+                        Opt(~sel)
+                    } else {
+                        sel
+                    }
+                })
             }
+            _ => Some(self.clone())
         }
-        Select(sel.as_slice().to_owned())
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::{Expr, Tok, Seq, Opt, Repeat, Select};
     use parser;
-    use token::Tokenizer;
+    use token::{Tokenizer, Text};
 
     #[test]
     fn pretty_normalized() {
@@ -123,5 +140,22 @@ mod tests {
         check("a | b...");
         check("{a | b}...");
         check("[a] {a | b}...");
+    }
+
+    #[test]
+    fn normalize() {
+        fn check(result: Option<Expr>, input: Expr) {
+            assert_eq!(result, input.normalize());
+        }
+
+        check(Some(Tok(Text(~"aa"))), Seq(~[~Tok(Text(~"aa"))]));
+        check(None, Seq(~[]));
+        check(None, Opt(~Seq(~[])));
+        check(None, Opt(~Opt(~Seq(~[]))));
+        check(None, Opt(~Opt(~Opt(~Seq(~[])))));
+        check(Some(Repeat(~Tok(Text(~"aa")))), Repeat(~Repeat(~Tok(Text(~"aa")))));
+        check(Some(Tok(Text(~"aa"))), Select(~[~Tok(Text(~"aa"))]));
+        check(Some(Seq(~[~Tok(Text(~"a")), ~Tok(Text(~"b")), ~Tok(Text(~"c"))])),
+              Seq(~[~Seq(~[~Tok(Text(~"a")), ~Tok(Text(~"b"))]), ~Tok(Text(~"c"))]));
     }
 }

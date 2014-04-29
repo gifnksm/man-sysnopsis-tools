@@ -13,6 +13,5 @@ Powered by [rustlang](http://www.rust-lang.org/).
   * roff generator
   * sample command line generator (expand SYNOPSIS)
   * distinguish between variables and keywords
-  * separate normalizer and AST constructor
 * documents (usage and comments in codes)
 * tests

@@ -9,6 +9,9 @@ use synop::Tokenizer;
 fn main() {
     for line in std::io::stdin().lines() {
         let p = synop::parse(Tokenizer::new(line.unwrap()));
-        println!("{}", p.pretty());
+        match p.normalize() {
+            Some(x) => println!("{}", x.pretty()),
+            None    => println!("")
+        }
     }
 }
