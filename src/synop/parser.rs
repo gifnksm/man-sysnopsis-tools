@@ -74,24 +74,6 @@ mod tests {
         p
     }
 
-    fn parse_normalized(s: &str) -> Expr {
-        let p = super::parse(Tokenizer::new(s));
-        let pp = super::parse(Tokenizer::new(p.pretty()));
-        if p != pp {
-            println!("{} => {}", s, p);
-            println!("{} => {}", p.pretty(), pp);
-            assert_eq!(p, pp);
-        }
-
-        let pn = super::parse(Tokenizer::new(s)).normalize().unwrap();
-        let ppn = super::parse(Tokenizer::new(pn.pretty())).normalize().unwrap();
-        if pn != ppn {
-            println!("{} => {}", s, pn);
-            println!("{} => {}", pn.pretty(), ppn);
-            assert_eq!(pn, ppn);
-        }
-        pn
-    }
     fn text(s: &str) -> Expr { Tok(Text(s.to_owned())) }
     fn short(s: &str) -> Expr { Tok(ShortOpt(s.to_owned())) }
     fn long(s: &str) -> Expr { Tok(LongOpt(s.to_owned())) }
@@ -116,34 +98,27 @@ mod tests {
     }
 
     #[test]
-    fn opt() { assert_eq!(Opt(~text("aaa")), parse_normalized("[aaa]")); }
-
+    fn opt() { assert_eq!(Opt(~text("aaa")), parse("[aaa]")); }
     #[test]
     fn opt_nested() {
-        assert_eq!(Opt(~Seq(vec!(text("a"), Opt(~text("b")), text("c")))), parse_normalized("[a[b]c]"));
-        assert_eq!(Opt(~text("a")), parse_normalized("[[a]]"));
+        assert_eq!(Opt(~Seq(vec!(text("a"), Opt(~text("b")), text("c")))), parse("[a[b]c]"));
+        assert_eq!(Opt(~Opt(~text("a"))), parse("[[a]]"));
     }
     #[test]
     fn opt_empty() { assert_eq!(Opt(~Seq(vec!())), parse("[]")); }
     #[test]
     fn opt_nested_empty() { assert_eq!(Opt(~Opt(~Seq(vec!()))), parse("[[]]")); }
-    #[test]
-    #[should_fail]
-    fn empty_opt() { parse_normalized("[]"); }
-    #[test]
-    #[should_fail]
-    fn empty_nested_opt() { parse_normalized("[[]]"); }
 
     #[test]
     fn repeat() {
-        assert_eq!(Seq(vec!(text("aaa"), Repeat(~text("bbb")))), parse_normalized("aaa bbb ..."));
-        assert_eq!(Repeat(~text("aaa")), parse_normalized("aaa ... ..."));
+        assert_eq!(Seq(vec!(text("aaa"), Repeat(~text("bbb")))), parse("aaa bbb ..."));
+        assert_eq!(Repeat(~Repeat(~text("aaa"))), parse("aaa ... ..."));
     }
     #[test]
     fn repeat_with_group() {
-        assert_eq!(Seq(vec!(text("aaa"), Repeat(~text("bbb")))), parse_normalized("aaa {bbb}..."));
-        assert_eq!(Repeat(~Seq(vec!(text("aaa"), text("bbb")))), parse_normalized("{aaa bbb}..."));
-        assert_eq!(Repeat(~Opt(~text("aaa"))), parse_normalized("[aaa]..."));
+        assert_eq!(Seq(vec!(text("aaa"), Repeat(~text("bbb")))), parse("aaa {bbb}..."));
+        assert_eq!(Repeat(~Seq(vec!(text("aaa"), text("bbb")))), parse("{aaa bbb}..."));
+        assert_eq!(Repeat(~Opt(~text("aaa"))), parse("[aaa]..."));
     }
     #[test]
     #[should_fail]
@@ -151,36 +126,23 @@ mod tests {
 
     #[test]
     fn bar() {
-        assert_eq!(Select(vec!(text("a"), text("b"))),
-                   parse_normalized("a|b"));
-        assert_eq!(Select(vec!(text("a"), text("b"), text("c"))),
-                   parse_normalized("a|b|c"));
+        assert_eq!(Select(vec!(text("a"), text("b"))), parse("a|b"));
+        assert_eq!(Select(vec!(text("a"), text("b"), text("c"))), parse("a|b|c"));
         assert_eq!(Seq(vec!(text("a"), Select(vec!(text("b"), text("c"))), text("d"))),
-                   parse_normalized("a { b | c } d"));
+                   parse("a { b | c } d"));
         assert_eq!(Select(vec!(text("a"), Seq(vec!(text("b"), text("c"))), text("d"))),
-                   parse_normalized("a|b c|d"));
+                   parse("a|b c|d"));
         assert_eq!(Select(vec!(Seq(vec!(text("a"), text("b"))),
                                Seq(vec!(text("c"), text("d"))),
                                Seq(vec!(text("e"), text("f"))))),
-                   parse_normalized("a b|c d|e f"));
-        assert_eq!(Opt(~Select(vec!(text("b"), text("ccc")))),
-                   parse_normalized("[b]|ccc"));
-        assert_eq!(Opt(~Select(vec!(text("b"), text("ccc")))),
-                   parse_normalized("[b]|[ccc]"));
-        assert_eq!(Opt(~Select(vec!(text("a"), text("b"), text("ccc")))),
-                   parse_normalized("a|[b]|ccc"));
-        assert_eq!(Opt(~Select(vec!(text("a"), text("b"), text("ccc")))),
-                   parse_normalized("a|[b]|[ccc]"));
-        assert_eq!(Opt(~Select(vec!(text("a"), text("b"), text("ccc")))),
-                   parse_normalized("[a]|[b]|ccc"));
-        assert_eq!(Opt(~Select(vec!(text("a"), text("b"), text("ccc")))),
-                   parse_normalized("[a]|[b]|[ccc]"));
-        assert_eq!(Opt(~Select(vec!(text("a"), text("b"), text("c"), text("ccc")))),
-                   parse_normalized("a|[b|c]|ccc"));
-        assert_eq!(Opt(~Select(vec!(text("a"), Seq(vec!(text("b"), text("c"))), text("ccc")))),
-                   parse_normalized("a|[b c]|ccc"));
+                   parse("a b|c d|e f"));
+        assert_eq!(Select(vec!(Opt(~text("b")), text("ccc"))), parse("[b]|ccc"));
+        assert_eq!(Select(vec!(Opt(~text("b")), Opt(~text("ccc")))), parse("[b]|[ccc]"));
+        assert_eq!(Select(vec!(text("a"), Opt(~text("b")), text("ccc"))), parse("a|[b]|ccc"));
+        assert_eq!(Select(vec!(text("a"), Opt(~Select(vec!(text("b"), text("c")))), text("ccc"))),
+                   parse("a|[b|c]|ccc"));
         assert_eq!(Seq(vec!(text("a"), Opt(~Select(vec!(text("b"), text("c")))), text("d"))),
-                   parse_normalized("a [b|c] d"));
+                   parse("a [b|c] d"));
     }
 
     #[test]
@@ -198,11 +160,11 @@ mod tests {
     }
     #[test]
     #[should_fail]
-    fn unclosed_brace() { parse_normalized("{a b"); }
+    fn unclosed_brace() { parse("{a b"); }
     #[test]
     #[should_fail]
-    fn unclosed_bracket() { parse_normalized("[a |b"); }
+    fn unclosed_bracket() { parse("[a |b"); }
     #[test]
     #[should_fail]
-    fn unbaranced_parens() { parse_normalized("[a b}"); }
+    fn unbaranced_parens() { parse("[a b}"); }
 }
