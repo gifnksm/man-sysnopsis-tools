@@ -8,7 +8,7 @@ use synop::Tokenizer;
 #[cfg(not(test))]
 fn main() {
     for line in std::io::stdin().lines() {
-        let p = synop::parse(Tokenizer::new(line.unwrap()));
+        let p = synop::parse(Tokenizer::new(line.unwrap().chars()));
         match p.normalize() {
             Some(x) => println!("{}", x.pretty()),
             None    => println!("")

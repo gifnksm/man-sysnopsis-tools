@@ -1,7 +1,7 @@
 use token::{Tokenizer, Token, Text, ShortOpt, LongOpt, LBracket, RBracket, LBrace, RBrace, Dots, Bar};
 use ast::{Expr, Tok, Seq, Opt, Repeat, Select};
 
-pub fn parse(mut tokenizer: Tokenizer) -> Expr {
+pub fn parse<T: Iterator<char>>(mut tokenizer: Tokenizer<T>) -> Expr {
     let (expr, next_token) = parse_expr(&mut tokenizer);
     assert_eq!(None, next_token);
     expr
@@ -64,8 +64,8 @@ mod tests {
     use ast::{Expr, Tok, Seq, Opt, Repeat, Select};
 
     fn parse(s: &str) -> Expr {
-        let p  = super::parse(Tokenizer::new(s));
-        let pp = super::parse(Tokenizer::new(p.pretty()));
+        let p  = super::parse(Tokenizer::new(s.chars()));
+        let pp = super::parse(Tokenizer::new(p.pretty().chars()));
         if p != pp {
             println!("{} => {}", s, p);
             println!("{} => {}", p.pretty(), pp);

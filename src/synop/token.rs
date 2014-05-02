@@ -1,5 +1,4 @@
 use std::iter::Peekable;
-use std::str::Chars;
 
 #[deriving(Eq, Show, Clone)]
 pub enum Token {
@@ -30,13 +29,13 @@ impl Token {
     }
 }
 
-pub struct Tokenizer<'a> { input: Peekable<char, Chars<'a>> }
+pub struct Tokenizer<T> { input: Peekable<char, T> }
 
 fn is_option_char(c: char) -> bool { c.is_alphanumeric() || c == '-' || c == '_' }
 
-impl<'a> Tokenizer<'a> {
+impl<T: Iterator<char>> Tokenizer<T> {
     #[inline]
-    pub fn new(input: &'a str) -> Tokenizer<'a> { Tokenizer { input: input.chars().peekable() } }
+    pub fn new(input: T) -> Tokenizer<T> { Tokenizer { input: input.peekable() } }
 
     fn push_while(&mut self, buf: &mut StrBuf, pred: |char| -> bool) {
         loop {
@@ -52,7 +51,7 @@ impl<'a> Tokenizer<'a> {
     }
 }
 
-impl<'a> Iterator<Token> for Tokenizer<'a> {
+impl<T: Iterator<char>> Iterator<Token> for Tokenizer<T> {
     fn next(&mut self) -> Option<Token> {
         match self.input.by_ref().skip_while(|&c| c.is_whitespace()).next() {
             Some('-') => {
@@ -94,7 +93,7 @@ mod tests {
                 LBracket, RBracket, LBrace, RBrace, Dots, Bar};
 
     fn check(output: &[Token], input: &str) {
-        assert_eq!(output.to_owned(), FromIterator::from_iter(Tokenizer::new(input)))
+        assert_eq!(output.to_owned(), FromIterator::from_iter(Tokenizer::new(input.chars())))
     }
     fn short(s: &str) -> Token { ShortOpt(s.to_owned()) }
     fn long(s: &str) -> Token { LongOpt(s.to_owned()) }
@@ -128,13 +127,13 @@ mod tests {
     #[test]
     #[should_fail]
     fn invalid_dots() {
-        for _tok in Tokenizer::new("....") {}
+        for _tok in Tokenizer::new("....".chars()) {}
     }
 
     #[test]
     fn pretty() {
         fn check(s: &str) {
-            let mut tok = Tokenizer::new(s);
+            let mut tok = Tokenizer::new(s.chars());
             assert_eq!(s.to_owned(), tok.next().unwrap().pretty());
             assert_eq!(None, tok.next());
         }

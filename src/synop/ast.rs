@@ -93,10 +93,10 @@ mod tests {
     #[test]
     fn pretty_normalized() {
         fn check(s: &str) {
-            let parsed = parser::parse(Tokenizer::new(s));
+            let parsed = parser::parse(Tokenizer::new(s.chars()));
             let pretty = parsed.pretty();
             assert_eq!(s.to_owned(), pretty);
-            assert_eq!(parsed, parser::parse(Tokenizer::new(pretty)));
+            assert_eq!(parsed, parser::parse(Tokenizer::new(pretty.chars())));
         }
         check("a");
         check("-b");
