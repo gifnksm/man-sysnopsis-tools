@@ -48,70 +48,36 @@ impl Expr {
 
     pub fn normalize(&self) -> Option<Expr> {
         match *self {
+            Tok(_) => Some(self.clone()),
             Seq(ref xs) => {
-                let mut v = Vec::new();
-                for x in xs.iter().filter_map(|x| x.normalize()) {
-                    match x {
-                        Seq(x) => v.push_all_move(x),
-                        _      => v.push(x)
-                    }
-                }
-                if v.is_empty() {
-                    None
-                } else if v.len() == 1 {
-                    Some(v.pop().unwrap())
-                } else {
-                    Some(Seq(v))
+                let mut v = xs.iter()
+                    .filter_map(|x| x.normalize())
+                    .map(|x| match x { Seq(y) => y, _ => vec!(x) })
+                    .flat_map(|xs| xs.move_iter())
+                    .collect::<Vec<_>>();
+                match v.len() {
+                    0 => None,
+                    1 => Some(v.pop().unwrap()),
+                    _ => Some(Seq(v))
                 }
             }
-            Opt(ref x) => {
-                x.normalize().map(|x| {
-                    match x {
-                        Opt(x) => Opt(x),
-                        _      => Opt(~x)
-                    }
-                })
-            }
-            Repeat(ref x) => {
-                x.normalize().map(|y| {
-                    match y {
-                        Repeat(z) => Repeat(z),
-                        _ => Repeat(~y)
-                    }
-                })
-            },
+            Opt(ref x)    => x.normalize().map(|y| match y { Opt(z)    => z, _ => ~y }).map(Opt),
+            Repeat(ref x) => x.normalize().map(|y| match y { Repeat(z) => z, _ => ~y }).map(Repeat),
             Select(ref xs) => {
                 let mut has_opt = false;
-                let mut v = Vec::new();
-                for x in xs.iter().filter_map(|x| x.normalize()) {
-                    match x {
-                        Select(x) => v.push_all_move(x),
-                        Opt(~Select(x)) => {
-                            has_opt = true;
-                            v.push_all_move(x)
-                        },
-                        Opt(x) => {
-                            has_opt = true;
-                            v.push(*x)
-                        }
-                        _ => v.push(x)
-                    }
-                }
-                if v.is_empty() {
-                    None
-                } else if v.len() == 1 {
-                    Some(v.pop().unwrap())
-                } else {
-                    Some(Select(v))
-                }.map(|sel| {
-                    if has_opt {
-                        Opt(~sel)
-                    } else {
-                        sel
-                    }
-                })
+                let mut v = xs.iter()
+                    .filter_map(|x| x.normalize())
+                    .map(|x| match x { Opt(y) => { has_opt = true; *y }, _ => x })
+                    .map(|x| match x { Select(y) => y, _ => vec!(x) })
+                    .flat_map(|xs| xs.move_iter())
+                    .collect::<Vec<_>>();
+                let sel = match v.len() {
+                    0 => None,
+                    1 => Some(v.pop().unwrap()),
+                    _ => Some(Select(v))
+                };
+                if has_opt { sel.map(|x| Opt(~x)) } else { sel }
             }
-            _ => Some(self.clone())
         }
     }
 }
