@@ -9,7 +9,14 @@ use synop::Tokenizer;
 fn main() {
     let mut stdin = std::io::stdin();
     let cs = stdin.chars().map(|c| c.unwrap());
-    match synop::parse(Tokenizer::new(cs)).normalize() {
+    let ast = match synop::parse(Tokenizer::new(cs)) {
+        Ok(ast) => ast,
+        Err(msg) => {
+            let _ =writeln!(&mut std::io::stderr(), "Parse error: {}", msg);
+            return
+        }
+    };
+    match ast.normalize() {
         Some(x) => println!("{}", x.pretty()),
         None    => println!("")
     }

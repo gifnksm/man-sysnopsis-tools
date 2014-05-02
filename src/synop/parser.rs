@@ -1,36 +1,42 @@
 use token::{Tokenizer, Token, Text, ShortOpt, LongOpt, LBracket, RBracket, LBrace, RBrace, Dots, Bar};
 use ast::{Expr, Tok, Seq, Opt, Repeat, Select};
 
-pub fn parse<T: Iterator<char>>(mut tokenizer: Tokenizer<T>) -> Expr {
-    let (expr, next_token) = parse_expr(&mut tokenizer);
-    assert_eq!(None, next_token);
-    expr
+pub type ParseResult<T> = Result<T, ~str>;
+
+pub fn parse<T: Iterator<char>>(mut tokenizer: Tokenizer<T>) -> ParseResult<Expr> {
+    let (expr, next_token) = try!(parse_expr(&mut tokenizer));
+    if next_token != None {
+        return Err(unexpected_msg(&next_token.unwrap()));
+    }
+    Ok(expr)
 }
 
-fn parse_expr<T: Iterator<Token>>(tokenizer: &mut T) -> (Expr, Option<Token>) {
+fn parse_expr<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<(Expr, Option<Token>)> {
     let mut v = Vec::new();
     loop {
-        let (term, n) = parse_term(&mut *tokenizer);
+        let (term, n) = try!(parse_term(&mut *tokenizer));
         v.push(term);
         if n != Some(Bar) {
             if v.len() == 1 {
-                return (v.pop().unwrap(), n)
+                return Ok((v.pop().unwrap(), n))
             }
-            return (Select(v), n)
+            return Ok((Select(v), n))
         }
     }
 }
 
-fn parse_term<T: Iterator<Token>>(tokenizer: &mut T) -> (Expr, Option<Token>) {
+fn parse_term<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<(Expr, Option<Token>)> {
     let mut v = Vec::new();
     loop {
         match tokenizer.next() {
-            Some(LBracket) => v.push(parse_bracket(&mut *tokenizer)),
-            Some(LBrace)   => v.push(parse_brace(&mut *tokenizer)),
+            Some(LBracket) => v.push(try!(parse_bracket(&mut *tokenizer))),
+            Some(LBrace)   => v.push(try!(parse_brace(&mut *tokenizer))),
             Some(Dots) => {
                 // Only last one element is repeated in this implementation.
-                let last = v.pop().unwrap();
-                v.push(Repeat(~last))
+                match v.pop() {
+                    Some(last) => v.push(Repeat(~last)),
+                    None => return Err(unexpected_msg(&Dots))
+                }
             },
             Some(tok @ Text(_))
                 | Some(tok @ ShortOpt(_))
@@ -38,24 +44,40 @@ fn parse_term<T: Iterator<Token>>(tokenizer: &mut T) -> (Expr, Option<Token>) {
                 => v.push(Tok(tok)),
             n => {
                 if v.len() == 1 {
-                    return (v.pop().unwrap(), n)
+                    return Ok((v.pop().unwrap(), n))
                 }
-                return (Seq(v), n)
+                return Ok((Seq(v), n))
             }
         }
     }
 }
 
-fn parse_bracket<T: Iterator<Token>>(tokenizer: &mut T) -> Expr {
-    let (expr, c) = parse_expr(&mut *tokenizer);
-    assert_eq!(Some(RBracket), c);
-    Opt(~expr)
+fn parse_bracket<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<Expr> {
+    let (expr, c) = try!(parse_expr(&mut *tokenizer));
+    try!(expect_token(&RBracket, &c));
+    Ok(Opt(~expr))
 }
 
-fn parse_brace<T: Iterator<Token>>(tokenizer: &mut T) -> Expr {
-    let (expr, c) = parse_expr(&mut *tokenizer);
-    assert_eq!(Some(RBrace), c);
-    expr
+fn parse_brace<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<Expr> {
+    let (expr, c) = try!(parse_expr(&mut *tokenizer));
+    try!(expect_token(&RBrace, &c));
+    Ok(expr)
+}
+
+fn expect_token(expect: &Token, actual: &Option<Token>) -> ParseResult<()> {
+    match *actual {
+        Some(ref ac) => {
+            if ac != expect {
+                return Err(format!("expected `{}`, found `{}`", expect.pretty(), ac.pretty()))
+            }
+        }
+        None => return Err(format!("expected `{}`, found EOF", expect.pretty()))
+    }
+    Ok(())
+}
+
+fn unexpected_msg(unexpect: &Token) -> ~str {
+    format!("unexpected token `{}` found", unexpect.pretty())
 }
 
 #[cfg(test)]
@@ -64,14 +86,17 @@ mod tests {
     use ast::{Expr, Tok, Seq, Opt, Repeat, Select};
 
     fn parse(s: &str) -> Expr {
-        let p  = super::parse(Tokenizer::new(s.chars()));
-        let pp = super::parse(Tokenizer::new(p.pretty().chars()));
+        let p  = super::parse(Tokenizer::new(s.chars())).unwrap();
+        let pp = super::parse(Tokenizer::new(p.pretty().chars())).unwrap();
         if p != pp {
             println!("{} => {}", s, p);
             println!("{} => {}", p.pretty(), pp);
             assert_eq!(p, pp);
         }
         p
+    }
+    fn parse_err(s: &str) -> ~str {
+        super::parse(Tokenizer::new(s.chars())).unwrap_err()
     }
 
     fn text(s: &str) -> Expr { Tok(Text(s.to_owned())) }
@@ -121,8 +146,7 @@ mod tests {
         assert_eq!(Repeat(~Opt(~text("aaa"))), parse("[aaa]..."));
     }
     #[test]
-    #[should_fail]
-    fn empty_repeat() { parse("..."); }
+    fn empty_repeat() { assert_eq!("unexpected token `...` found".to_owned(), parse_err("...")); }
 
     #[test]
     fn bar() {
@@ -159,12 +183,11 @@ mod tests {
                    parse("a|{b|c}"));
     }
     #[test]
-    #[should_fail]
-    fn unclosed_brace() { parse("{a b"); }
+    fn unclosed_brace() { assert_eq!("expected `}`, found EOF".to_owned(), parse_err("{a b")) }
     #[test]
-    #[should_fail]
-    fn unclosed_bracket() { parse("[a |b"); }
+    fn unclosed_bracket() { assert_eq!("expected `]`, found EOF".to_owned(), parse_err("[a |b")); }
     #[test]
-    #[should_fail]
-    fn unbaranced_parens() { parse("[a b}"); }
+    fn unbaranced_parens() { assert_eq!("expected `]`, found `}`".to_owned(), parse_err("[a b}")); }
+    #[test]
+    fn close_only() { assert_eq!("unexpected token `}` found".to_owned(), parse_err("a }")) }
 }
