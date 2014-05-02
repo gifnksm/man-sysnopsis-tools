@@ -20,12 +20,12 @@ impl Token {
             Text(ref s) => s.to_owned(),
             ShortOpt(ref s) => format!("-{}", s),
             LongOpt(ref s) => format!("--{}", s),
-            LBracket => ~"[",
-            RBracket => ~"]",
-            LBrace   => ~"{",
-            RBrace   => ~"}",
-            Dots     => ~"...",
-            Bar      => ~"|"
+            LBracket => "[".to_owned(),
+            RBracket => "]".to_owned(),
+            LBrace   => "{".to_owned(),
+            RBrace   => "}".to_owned(),
+            Dots     => "...".to_owned(),
+            Bar      => "|".to_owned()
         }
     }
 }
@@ -96,34 +96,32 @@ mod tests {
     fn check(output: &[Token], input: &str) {
         assert_eq!(output.to_owned(), FromIterator::from_iter(Tokenizer::new(input)))
     }
+    fn short(s: &str) -> Token { ShortOpt(s.to_owned()) }
+    fn long(s: &str) -> Token { LongOpt(s.to_owned()) }
+    fn text(s: &str) -> Token { Text(s.to_owned()) }
 
     #[test]
     fn short_opt() {
-        check([ShortOpt(~"")], "-");
-        check([ShortOpt(~"a")], "-a");
-        check([ShortOpt(~"a")], "  -a  ");
-        check([ShortOpt(~"a"), ShortOpt(~"b"), ShortOpt(~"c"), ShortOpt(~"1")],
-              "-a -b -c -1");
-        check([ShortOpt(~"a"), ShortOpt(~"b"), ShortOpt(~"c"), ShortOpt(~"1")],
-              "  -a -b   -c   -1  ");
+        check([short("")], "-");
+        check([short("a")], "-a");
+        check([short("a")], "  -a  ");
+        check([short("a"), short("b"), short("c"), short("1")], "-a -b -c -1");
+        check([short("a"), short("b"), short("c"), short("1")], "  -a -b   -c   -1  ");
     }
 
     #[test]
     fn long_opt() {
-        check([LongOpt(~"")], "--");
-        check([LongOpt(~"long")], "--long");
-        check([LongOpt(~"aaa"), LongOpt(~"bbb"), LongOpt(~"ccc"), LongOpt(~"123")],
-              "--aaa --bbb --ccc --123");
-        check([LongOpt(~"aaa"), LongOpt(~"bbb"), LongOpt(~"ccc"), LongOpt(~"123")],
-              "  --aaa --bbb   --ccc --123");
-        check([LongOpt(~"aaa"), LongOpt(~"bbb"), LongOpt(~"ccc--1_23")],
-              "  --aaa --bbb   --ccc--1_23");
+        check([long("")], "--");
+        check([long("long")], "--long");
+        check([long("aaa"), long("bbb"), long("ccc"), long("123")], "--aaa --bbb --ccc --123");
+        check([long("aaa"), long("bbb"), long("ccc"), long("123")], "  --aaa --bbb   --ccc --123");
+        check([long("aaa"), long("bbb"), long("ccc--1_23")], "  --aaa --bbb   --ccc--1_23");
     }
 
     #[test]
     fn mixed() {
-        check([ShortOpt(~"a"), LBrace, Text(~"a"), Bar, Text(~"b"), Bar, Text(~"c"), RBrace,
-               LBracket, Text(~"p"), Dots, RBracket],
+        check([short("a"), LBrace, text("a"), Bar, text("b"), Bar, text("c"), RBrace,
+               LBracket, text("p"), Dots, RBracket],
               "-a {a|b|c} [p ...]")
     }
 

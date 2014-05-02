@@ -38,10 +38,9 @@ impl Expr {
                         let p = expr.pretty();
                         match *expr {
                             Select(_) => format!("\\{{}\\}", p),
-                            _ => p
+                            Tok(_) | Opt(_) | Repeat(_) | Seq(_) => p
                         }
-                    })
-                    .collect::<~[~str]>()
+                    }).collect::<~[~str]>()
                     .connect(" | ")
             }
         }
@@ -123,6 +122,8 @@ mod tests {
     use parser;
     use token::{Tokenizer, Text};
 
+    fn text(s: &str) -> Expr { Tok(Text(s.to_owned())) }
+
     #[test]
     fn pretty_normalized() {
         fn check(s: &str) {
@@ -148,14 +149,14 @@ mod tests {
             assert_eq!(result, input.normalize());
         }
 
-        check(Some(Tok(Text(~"aa"))), Seq(vec!(Tok(Text(~"aa")))));
+        check(Some(text("aa")), Seq(vec!(text("aa"))));
         check(None, Seq(vec!()));
         check(None, Opt(~Seq(vec!())));
         check(None, Opt(~Opt(~Seq(vec!()))));
         check(None, Opt(~Opt(~Opt(~Seq(vec!())))));
-        check(Some(Repeat(~Tok(Text(~"aa")))), Repeat(~Repeat(~Tok(Text(~"aa")))));
-        check(Some(Tok(Text(~"aa"))), Select(vec!(Tok(Text(~"aa")))));
-        check(Some(Seq(vec!(Tok(Text(~"a")), Tok(Text(~"b")), Tok(Text(~"c"))))),
-              Seq(vec!(Seq(vec!(Tok(Text(~"a")), Tok(Text(~"b")))), Tok(Text(~"c")))));
+        check(Some(Repeat(~text("aa"))), Repeat(~Repeat(~text("aa"))));
+        check(Some(text("aa")), Select(vec!(text("aa"))));
+        check(Some(Seq(vec!(text("a"), text("b"), text("c")))),
+              Seq(vec!(Seq(vec!(text("a"), text("b"))), text("c"))));
     }
 }
