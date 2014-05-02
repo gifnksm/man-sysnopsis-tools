@@ -64,7 +64,7 @@ mod tests {
     use ast::{Expr, Tok, Seq, Opt, Repeat, Select};
 
     fn parse(s: &str) -> Expr {
-        let p = super::parse(Tokenizer::new(s));
+        let p  = super::parse(Tokenizer::new(s));
         let pp = super::parse(Tokenizer::new(p.pretty()));
         if p != pp {
             println!("{} => {}", s, p);

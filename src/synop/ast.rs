@@ -46,11 +46,11 @@ impl Expr {
         }
     }
 
-    pub fn normalize(&self) -> Option<Expr> {
-        match *self {
-            Tok(_) => Some(self.clone()),
-            Seq(ref xs) => {
-                let mut v = xs.iter()
+    pub fn normalize(self) -> Option<Expr> {
+        match self {
+            Tok(_) => Some(self),
+            Seq(xs) => {
+                let mut v = xs.move_iter()
                     .filter_map(|x| x.normalize())
                     .map(|x| match x { Seq(y) => y, _ => vec!(x) })
                     .flat_map(|xs| xs.move_iter())
@@ -61,11 +61,11 @@ impl Expr {
                     _ => Some(Seq(v))
                 }
             }
-            Opt(ref x)    => x.normalize().map(|y| match y { Opt(z)    => z, _ => ~y }).map(Opt),
-            Repeat(ref x) => x.normalize().map(|y| match y { Repeat(z) => z, _ => ~y }).map(Repeat),
-            Select(ref xs) => {
+            Opt(x)    => x.normalize().map(|y| match y { Opt(z)    => z, _ => ~y }).map(Opt),
+            Repeat(x) => x.normalize().map(|y| match y { Repeat(z) => z, _ => ~y }).map(Repeat),
+            Select(xs) => {
                 let mut has_opt = false;
-                let mut v = xs.iter()
+                let mut v = xs.move_iter()
                     .filter_map(|x| x.normalize())
                     .map(|x| match x { Opt(y) => { has_opt = true; *y }, _ => x })
                     .map(|x| match x { Select(y) => y, _ => vec!(x) })
