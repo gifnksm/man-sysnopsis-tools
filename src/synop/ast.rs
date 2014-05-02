@@ -72,11 +72,11 @@ impl Expr {
                     }
                 })
             }
-            Repeat(~Repeat(ref x)) => {
-                x.normalize().map(|x| {
-                    match x {
-                        Repeat(x) => Repeat(x),
-                        _ => Repeat(~x)
+            Repeat(ref x) => {
+                x.normalize().map(|y| {
+                    match y {
+                        Repeat(z) => Repeat(z),
+                        _ => Repeat(~y)
                     }
                 })
             },
@@ -158,5 +158,6 @@ mod tests {
         check(Some(text("aa")), Select(vec!(text("aa"))));
         check(Some(Seq(vec!(text("a"), text("b"), text("c")))),
               Seq(vec!(Seq(vec!(text("a"), text("b"))), text("c"))));
+        check(Some(Repeat(~text("a"))), Repeat(~Seq(vec!(Repeat(~text("a"))))));
     }
 }
