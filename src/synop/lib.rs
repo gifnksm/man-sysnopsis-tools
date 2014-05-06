@@ -1,9 +1,10 @@
 #![crate_id = "synop"]
 #![crate_type = "lib"]
 
-pub use token::Tokenizer;
-pub use parser::parse;
+pub use token::{Token, Tokenizer};
+pub use ast::Expr;
+pub use parser::{ParseResult, parse};
 
-pub mod token;
-pub mod ast;
-pub mod parser;
+mod token;
+mod ast;
+mod parser;
