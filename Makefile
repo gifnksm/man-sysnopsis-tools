@@ -1,5 +1,5 @@
-RUSTCRATES = synopfmt synop
-synopfmt_CRATE_DEPS += synop
+RUSTCRATES = synopfmt cmdutil synop
+synopfmt_CRATE_DEPS += cmdutil synop
 
 RUSTCFLAGS += \
 	-D warnings \
