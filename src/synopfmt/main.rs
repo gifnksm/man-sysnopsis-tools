@@ -3,16 +3,14 @@
 extern crate synop;
 
 #[cfg(not(test))]
-use synop::Tokenizer;
+use std::io;
 
 #[cfg(not(test))]
 fn main() {
-    let mut stdin = std::io::stdin();
-    let cs = stdin.chars().map(|c| c.unwrap());
-    let ast = match synop::parse(Tokenizer::new(cs)) {
+    let ast = match synop::read_ast(&mut io::stdin()) {
         Ok(ast) => ast,
         Err(msg) => {
-            let _ =writeln!(&mut std::io::stderr(), "Parse error: {}", msg);
+            let _ = writeln!(&mut io::stderr(), "{}", msg);
             return
         }
     };
