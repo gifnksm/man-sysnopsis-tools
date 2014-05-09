@@ -4,8 +4,8 @@ use token::Token;
 pub enum Expr {
     Tok(Token),
     Seq(Vec<Expr>),
-    Opt(~Expr),
-    Repeat(~Expr),
+    Opt(Box<Expr>),
+    Repeat(Box<Expr>),
     Select(Vec<Expr>)
 }
 
@@ -21,7 +21,7 @@ impl Expr {
                             Tok(_) | Opt(_) | Repeat(_) => p,
                             Seq(_) | Select(_) => format!("\\{{}\\}", p)
                         }
-                    }).collect::<~[~str]>()
+                    }).collect::<Vec<~str>>()
                     .connect(" ")
             },
             Opt(ref e) => format!("[{}]", e.pretty()),
@@ -40,7 +40,7 @@ impl Expr {
                             Select(_) => format!("\\{{}\\}", p),
                             Tok(_) | Opt(_) | Repeat(_) | Seq(_) => p
                         }
-                    }).collect::<~[~str]>()
+                    }).collect::<Vec<~str>>()
                     .connect(" | ")
             }
         }
@@ -61,8 +61,8 @@ impl Expr {
                     _ => Some(Seq(v))
                 }
             }
-            Opt(x)    => x.normalize().map(|y| match y { Opt(z)    => z, _ => ~y }).map(Opt),
-            Repeat(x) => x.normalize().map(|y| match y { Repeat(z) => z, _ => ~y }).map(Repeat),
+            Opt(x)    => x.normalize().map(|y| match y { Opt(z)    => z, _ => box y }).map(Opt),
+            Repeat(x) => x.normalize().map(|y| match y { Repeat(z) => z, _ => box y }).map(Repeat),
             Select(xs) => {
                 let mut has_opt = false;
                 let mut v = xs.move_iter()
@@ -76,7 +76,7 @@ impl Expr {
                     1 => Some(v.pop().unwrap()),
                     _ => Some(Select(v))
                 };
-                if has_opt { sel.map(|x| Opt(~x)) } else { sel }
+                if has_opt { sel.map(|x| Opt(box x)) } else { sel }
             }
         }
     }
@@ -117,13 +117,13 @@ mod tests {
 
         check(Some(text("aa")), Seq(vec!(text("aa"))));
         check(None, Seq(vec!()));
-        check(None, Opt(~Seq(vec!())));
-        check(None, Opt(~Opt(~Seq(vec!()))));
-        check(None, Opt(~Opt(~Opt(~Seq(vec!())))));
-        check(Some(Repeat(~text("aa"))), Repeat(~Repeat(~text("aa"))));
+        check(None, Opt(box Seq(vec!())));
+        check(None, Opt(box Opt(box Seq(vec!()))));
+        check(None, Opt(box Opt(box Opt(box Seq(vec!())))));
+        check(Some(Repeat(box text("aa"))), Repeat(box Repeat(box text("aa"))));
         check(Some(text("aa")), Select(vec!(text("aa"))));
         check(Some(Seq(vec!(text("a"), text("b"), text("c")))),
               Seq(vec!(Seq(vec!(text("a"), text("b"))), text("c"))));
-        check(Some(Repeat(~text("a"))), Repeat(~Seq(vec!(Repeat(~text("a"))))));
+        check(Some(Repeat(box text("a"))), Repeat(box Seq(vec!(Repeat(box text("a"))))));
     }
 }

@@ -34,7 +34,7 @@ fn parse_term<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<(Expr, Optio
             Some(Dots) => {
                 // Only last one element is repeated in this implementation.
                 match v.pop() {
-                    Some(last) => v.push(Repeat(~last)),
+                    Some(last) => v.push(Repeat(box last)),
                     None => return Err(unexpected_msg(&Dots))
                 }
             },
@@ -55,7 +55,7 @@ fn parse_term<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<(Expr, Optio
 fn parse_bracket<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<Expr> {
     let (expr, c) = try!(parse_expr(&mut *tokenizer));
     try!(expect_token(&RBracket, &c));
-    Ok(Opt(~expr))
+    Ok(Opt(box expr))
 }
 
 fn parse_brace<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<Expr> {
@@ -123,27 +123,27 @@ mod tests {
     }
 
     #[test]
-    fn opt() { assert_eq!(Opt(~text("aaa")), parse("[aaa]")); }
+    fn opt() { assert_eq!(Opt(box text("aaa")), parse("[aaa]")); }
     #[test]
     fn opt_nested() {
-        assert_eq!(Opt(~Seq(vec!(text("a"), Opt(~text("b")), text("c")))), parse("[a[b]c]"));
-        assert_eq!(Opt(~Opt(~text("a"))), parse("[[a]]"));
+        assert_eq!(Opt(box Seq(vec!(text("a"), Opt(box text("b")), text("c")))), parse("[a[b]c]"));
+        assert_eq!(Opt(box Opt(box text("a"))), parse("[[a]]"));
     }
     #[test]
-    fn opt_empty() { assert_eq!(Opt(~Seq(vec!())), parse("[]")); }
+    fn opt_empty() { assert_eq!(Opt(box Seq(vec!())), parse("[]")); }
     #[test]
-    fn opt_nested_empty() { assert_eq!(Opt(~Opt(~Seq(vec!()))), parse("[[]]")); }
+    fn opt_nested_empty() { assert_eq!(Opt(box Opt(box Seq(vec!()))), parse("[[]]")); }
 
     #[test]
     fn repeat() {
-        assert_eq!(Seq(vec!(text("aaa"), Repeat(~text("bbb")))), parse("aaa bbb ..."));
-        assert_eq!(Repeat(~Repeat(~text("aaa"))), parse("aaa ... ..."));
+        assert_eq!(Seq(vec!(text("aaa"), Repeat(box text("bbb")))), parse("aaa bbb ..."));
+        assert_eq!(Repeat(box Repeat(box text("aaa"))), parse("aaa ... ..."));
     }
     #[test]
     fn repeat_with_group() {
-        assert_eq!(Seq(vec!(text("aaa"), Repeat(~text("bbb")))), parse("aaa {bbb}..."));
-        assert_eq!(Repeat(~Seq(vec!(text("aaa"), text("bbb")))), parse("{aaa bbb}..."));
-        assert_eq!(Repeat(~Opt(~text("aaa"))), parse("[aaa]..."));
+        assert_eq!(Seq(vec!(text("aaa"), Repeat(box text("bbb")))), parse("aaa {bbb}..."));
+        assert_eq!(Repeat(box Seq(vec!(text("aaa"), text("bbb")))), parse("{aaa bbb}..."));
+        assert_eq!(Repeat(box Opt(box text("aaa"))), parse("[aaa]..."));
     }
     #[test]
     fn empty_repeat() { assert_eq!("unexpected token `...` found".to_owned(), parse_err("...")); }
@@ -160,12 +160,12 @@ mod tests {
                                Seq(vec!(text("c"), text("d"))),
                                Seq(vec!(text("e"), text("f"))))),
                    parse("a b|c d|e f"));
-        assert_eq!(Select(vec!(Opt(~text("b")), text("ccc"))), parse("[b]|ccc"));
-        assert_eq!(Select(vec!(Opt(~text("b")), Opt(~text("ccc")))), parse("[b]|[ccc]"));
-        assert_eq!(Select(vec!(text("a"), Opt(~text("b")), text("ccc"))), parse("a|[b]|ccc"));
-        assert_eq!(Select(vec!(text("a"), Opt(~Select(vec!(text("b"), text("c")))), text("ccc"))),
+        assert_eq!(Select(vec!(Opt(box text("b")), text("ccc"))), parse("[b]|ccc"));
+        assert_eq!(Select(vec!(Opt(box text("b")), Opt(box text("ccc")))), parse("[b]|[ccc]"));
+        assert_eq!(Select(vec!(text("a"), Opt(box text("b")), text("ccc"))), parse("a|[b]|ccc"));
+        assert_eq!(Select(vec!(text("a"), Opt(box Select(vec!(text("b"), text("c")))), text("ccc"))),
                    parse("a|[b|c]|ccc"));
-        assert_eq!(Seq(vec!(text("a"), Opt(~Select(vec!(text("b"), text("c")))), text("d"))),
+        assert_eq!(Seq(vec!(text("a"), Opt(box Select(vec!(text("b"), text("c")))), text("d"))),
                    parse("a [b|c] d"));
     }
 

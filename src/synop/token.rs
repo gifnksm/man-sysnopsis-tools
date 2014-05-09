@@ -93,7 +93,8 @@ mod tests {
                 LBracket, RBracket, LBrace, RBrace, Dots, Bar};
 
     fn check(output: &[Token], input: &str) {
-        assert_eq!(output.to_owned(), FromIterator::from_iter(Tokenizer::new(input.chars())))
+        let v = Tokenizer::new(input.chars()).collect::<Vec<_>>();
+        assert_eq!(output, v.as_slice());
     }
     fn short(s: &str) -> Token { ShortOpt(s.to_owned()) }
     fn long(s: &str) -> Token { LongOpt(s.to_owned()) }
