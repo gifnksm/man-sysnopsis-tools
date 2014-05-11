@@ -28,19 +28,26 @@ fn print_expand(expr: &Expr) {
                     v = v2;
                 }
                 v
-            },
+            }
             Opt(ref opt) => {
                 let mut v = inner(*opt);
                 v.unshift("".to_owned());
                 v
             }
-            Repeat(ref rep) => {
+            Repeat(box Opt(ref rep)) => {
                 let mut v = vec!();
                 v.push_all_move(inner(&Seq(vec![])));
                 v.push_all_move(inner(&Seq(vec![(**rep).clone()])));
                 v.push_all_move(inner(&Seq(vec![(**rep).clone(), (**rep).clone()])));
                 v
-            },
+            }
+            Repeat(ref rep) => {
+                let mut v = vec!();
+                v.push_all_move(inner(&Seq(vec![(**rep).clone()])));
+                v.push_all_move(inner(&Seq(vec![(**rep).clone(), (**rep).clone()])));
+                v.push_all_move(inner(&Seq(vec![(**rep).clone(), (**rep).clone(), (**rep).clone()])));
+                v
+            }
             Select(ref sel) => {
                 sel.iter()
                     .map(inner)
