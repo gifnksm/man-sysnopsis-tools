@@ -2,11 +2,11 @@
 #![crate_type = "lib"]
 
 pub use token::{Token, Tokenizer};
-pub use ast::{Expr, Tok, Seq, Opt, Repeat, Select};
+pub use ast::Expr;
 pub use parser::{ParseResult, parse};
 pub use util::{ReadResult, read_ast};
 
-mod token;
-mod ast;
+pub mod token;
+pub mod ast;
 mod parser;
 mod util;
