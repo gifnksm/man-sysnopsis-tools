@@ -10,7 +10,7 @@ pub enum Expr {
 }
 
 impl Expr {
-    pub fn pretty(&self) -> ~str {
+    pub fn pretty(&self) -> StrBuf {
         match *self {
             Tok(ref t) => t.pretty(),
             Seq(ref s) => {
@@ -21,7 +21,7 @@ impl Expr {
                             Tok(_) | Opt(_) | Repeat(_) => p,
                             Seq(_) | Select(_) => format!("\\{{}\\}", p)
                         }
-                    }).collect::<Vec<~str>>()
+                    }).collect::<Vec<StrBuf>>()
                     .connect(" ")
             },
             Opt(ref e) => format!("[{}]", e.pretty()),
@@ -40,7 +40,7 @@ impl Expr {
                             Select(_) => format!("\\{{}\\}", p),
                             Tok(_) | Opt(_) | Repeat(_) | Seq(_) => p
                         }
-                    }).collect::<Vec<~str>>()
+                    }).collect::<Vec<StrBuf>>()
                     .connect(" | ")
             }
         }
@@ -96,7 +96,7 @@ mod tests {
             let parsed = parser::parse(Tokenizer::new(s.chars())).unwrap();
             let pretty = parsed.pretty();
             assert_eq!(s.to_owned(), pretty);
-            assert_eq!(parsed, parser::parse(Tokenizer::new(pretty.chars())).unwrap());
+            assert_eq!(parsed, parser::parse(Tokenizer::new(pretty.as_slice().chars())).unwrap());
         }
         check("a");
         check("-b");

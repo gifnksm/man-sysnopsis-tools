@@ -2,9 +2,9 @@ use std::iter::Peekable;
 
 #[deriving(Eq, Show, Clone)]
 pub enum Token {
-    Text(~str),
-    ShortOpt(~str),
-    LongOpt(~str),
+    Text(StrBuf),
+    ShortOpt(StrBuf),
+    LongOpt(StrBuf),
     LBracket,
     RBracket,
     LBrace,
@@ -14,7 +14,7 @@ pub enum Token {
 }
 
 impl Token {
-    pub fn pretty(&self) -> ~str {
+    pub fn pretty(&self) -> StrBuf {
         match *self {
             Text(ref s) => s.to_owned(),
             ShortOpt(ref s) => format!("-{}", s),

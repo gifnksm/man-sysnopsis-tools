@@ -1,7 +1,7 @@
 use token::{Tokenizer, Token, Text, ShortOpt, LongOpt, LBracket, RBracket, LBrace, RBrace, Dots, Bar};
 use ast::{Expr, Tok, Seq, Opt, Repeat, Select};
 
-pub type ParseResult<T> = Result<T, ~str>;
+pub type ParseResult<T> = Result<T, StrBuf>;
 
 pub fn parse<T: Iterator<char>>(mut tokenizer: Tokenizer<T>) -> ParseResult<Expr> {
     let (expr, next_token) = try!(parse_expr(&mut tokenizer));
@@ -76,7 +76,7 @@ fn expect_token(expect: &Token, actual: &Option<Token>) -> ParseResult<()> {
     Ok(())
 }
 
-fn unexpected_msg(unexpect: &Token) -> ~str {
+fn unexpected_msg(unexpect: &Token) -> StrBuf {
     format!("unexpected token `{}` found", unexpect.pretty())
 }
 
@@ -87,7 +87,7 @@ mod tests {
 
     fn parse(s: &str) -> Expr {
         let p  = super::parse(Tokenizer::new(s.chars())).unwrap();
-        let pp = super::parse(Tokenizer::new(p.pretty().chars())).unwrap();
+        let pp = super::parse(Tokenizer::new(p.pretty().as_slice().chars())).unwrap();
         if p != pp {
             println!("{} => {}", s, p);
             println!("{} => {}", p.pretty(), pp);
@@ -95,7 +95,7 @@ mod tests {
         }
         p
     }
-    fn parse_err(s: &str) -> ~str {
+    fn parse_err(s: &str) -> StrBuf {
         super::parse(Tokenizer::new(s.chars())).unwrap_err()
     }
 

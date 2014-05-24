@@ -54,7 +54,7 @@ fn expand(expr: &Expr) -> Vec<Vec<Token>> {
 #[cfg(not(test))]
 fn print_expand(expr: &Expr) {
     for cmd in expand(expr).iter() {
-        println!("{}", cmd.iter().map(|c| c.pretty()).collect::<Vec<~str>>().connect(" "));
+        println!("{}", cmd.iter().map(|c| c.pretty()).collect::<Vec<StrBuf>>().connect(" "));
     }
 }
 
