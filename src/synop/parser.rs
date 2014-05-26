@@ -1,7 +1,7 @@
 use token::{Tokenizer, Token, Text, ShortOpt, LongOpt, LBracket, RBracket, LBrace, RBrace, Dots, Bar};
 use ast::{Expr, Tok, Seq, Opt, Repeat, Select};
 
-pub type ParseResult<T> = Result<T, StrBuf>;
+pub type ParseResult<T> = Result<T, String>;
 
 pub fn parse<T: Iterator<char>>(mut tokenizer: Tokenizer<T>) -> ParseResult<Expr> {
     let (expr, next_token) = try!(parse_expr(&mut tokenizer));
@@ -76,7 +76,7 @@ fn expect_token(expect: &Token, actual: &Option<Token>) -> ParseResult<()> {
     Ok(())
 }
 
-fn unexpected_msg(unexpect: &Token) -> StrBuf {
+fn unexpected_msg(unexpect: &Token) -> String {
     format!("unexpected token `{}` found", unexpect.pretty())
 }
 
@@ -95,7 +95,7 @@ mod tests {
         }
         p
     }
-    fn parse_err(s: &str) -> StrBuf {
+    fn parse_err(s: &str) -> String {
         super::parse(Tokenizer::new(s.chars())).unwrap_err()
     }
 

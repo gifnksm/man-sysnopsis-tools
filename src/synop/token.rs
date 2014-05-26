@@ -2,9 +2,9 @@ use std::iter::Peekable;
 
 #[deriving(Eq, Show, Clone)]
 pub enum Token {
-    Text(StrBuf),
-    ShortOpt(StrBuf),
-    LongOpt(StrBuf),
+    Text(String),
+    ShortOpt(String),
+    LongOpt(String),
     LBracket,
     RBracket,
     LBrace,
@@ -14,7 +14,7 @@ pub enum Token {
 }
 
 impl Token {
-    pub fn pretty(&self) -> StrBuf {
+    pub fn pretty(&self) -> String {
         match *self {
             Text(ref s) => s.to_owned(),
             ShortOpt(ref s) => format!("-{}", s),
@@ -37,7 +37,7 @@ impl<T: Iterator<char>> Tokenizer<T> {
     #[inline]
     pub fn new(input: T) -> Tokenizer<T> { Tokenizer { input: input.peekable() } }
 
-    fn push_while(&mut self, buf: &mut StrBuf, pred: |char| -> bool) {
+    fn push_while(&mut self, buf: &mut String, pred: |char| -> bool) {
         loop {
             match self.input.peek() {
                 Some(&c) => {
@@ -62,7 +62,7 @@ impl<T: Iterator<char>> Iterator<Token> for Tokenizer<T> {
                     ShortOpt
                 };
 
-                let mut s = StrBuf::new();
+                let mut s = String::new();
                 self.push_while(&mut s, is_option_char);
                 Some(tok(s.to_str()))
             },
@@ -77,7 +77,7 @@ impl<T: Iterator<char>> Iterator<Token> for Tokenizer<T> {
             }
             Some('|') => Some(Bar),
             Some(c) => {
-                let mut s = StrBuf::new();
+                let mut s = String::new();
                 s.push_char(c);
                 self.push_while(&mut s, is_option_char);
                 Some(Text(s.to_str()))

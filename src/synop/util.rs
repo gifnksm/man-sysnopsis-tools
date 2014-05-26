@@ -2,7 +2,7 @@ use std::io::Buffer;
 use super::Tokenizer;
 use ast::Expr;
 
-pub type ReadResult = Result<Expr, StrBuf>;
+pub type ReadResult = Result<Expr, String>;
 
 pub fn read_ast<R: Buffer>(reader: &mut R) -> ReadResult {
     let cs = reader.chars().map(|c| c.unwrap());

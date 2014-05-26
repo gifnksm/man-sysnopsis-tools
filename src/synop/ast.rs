@@ -10,7 +10,7 @@ pub enum Expr {
 }
 
 impl Expr {
-    pub fn pretty(&self) -> StrBuf {
+    pub fn pretty(&self) -> String {
         match *self {
             Tok(ref t) => t.pretty(),
             Seq(ref s) => {
@@ -21,7 +21,7 @@ impl Expr {
                             Tok(_) | Opt(_) | Repeat(_) => p,
                             Seq(_) | Select(_) => format!("\\{{}\\}", p)
                         }
-                    }).collect::<Vec<StrBuf>>()
+                    }).collect::<Vec<String>>()
                     .connect(" ")
             },
             Opt(ref e) => format!("[{}]", e.pretty()),
@@ -40,7 +40,7 @@ impl Expr {
                             Select(_) => format!("\\{{}\\}", p),
                             Tok(_) | Opt(_) | Repeat(_) | Seq(_) => p
                         }
-                    }).collect::<Vec<StrBuf>>()
+                    }).collect::<Vec<String>>()
                     .connect(" | ")
             }
         }
