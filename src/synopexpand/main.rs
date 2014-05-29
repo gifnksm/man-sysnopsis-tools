@@ -78,10 +78,10 @@ mod tests {
 
     fn text_tok(v: Vec<Vec<&str>>) -> Vec<Vec<Token>> {
         v.move_iter()
-            .map(|x| x.move_iter().map(|s| Text(s.to_owned())).collect())
+            .map(|x| x.move_iter().map(|s| Text(s.to_string())).collect())
             .collect()
     }
-    fn text(s: &str) -> Expr { Tok(Text(s.to_owned())) }
+    fn text(s: &str) -> Expr { Tok(Text(s.to_string())) }
 
     #[test]
     fn expand() {

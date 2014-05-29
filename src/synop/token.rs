@@ -16,15 +16,15 @@ pub enum Token {
 impl Token {
     pub fn pretty(&self) -> String {
         match *self {
-            Text(ref s) => s.to_owned(),
+            Text(ref s) => s.to_string(),
             ShortOpt(ref s) => format!("-{}", s),
             LongOpt(ref s) => format!("--{}", s),
-            LBracket => "[".to_owned(),
-            RBracket => "]".to_owned(),
-            LBrace   => "{".to_owned(),
-            RBrace   => "}".to_owned(),
-            Dots     => "...".to_owned(),
-            Bar      => "|".to_owned()
+            LBracket => "[".to_string(),
+            RBracket => "]".to_string(),
+            LBrace   => "{".to_string(),
+            RBrace   => "}".to_string(),
+            Dots     => "...".to_string(),
+            Bar      => "|".to_string()
         }
     }
 }
@@ -96,9 +96,9 @@ mod tests {
         let v = Tokenizer::new(input.chars()).collect::<Vec<_>>();
         assert_eq!(output, v.as_slice());
     }
-    fn short(s: &str) -> Token { ShortOpt(s.to_owned()) }
-    fn long(s: &str) -> Token { LongOpt(s.to_owned()) }
-    fn text(s: &str) -> Token { Text(s.to_owned()) }
+    fn short(s: &str) -> Token { ShortOpt(s.to_string()) }
+    fn long(s: &str) -> Token { LongOpt(s.to_string()) }
+    fn text(s: &str) -> Token { Text(s.to_string()) }
 
     #[test]
     fn short_opt() {
@@ -135,7 +135,7 @@ mod tests {
     fn pretty() {
         fn check(s: &str) {
             let mut tok = Tokenizer::new(s.chars());
-            assert_eq!(s.to_owned(), tok.next().unwrap().pretty());
+            assert_eq!(s.to_string(), tok.next().unwrap().pretty());
             assert_eq!(None, tok.next());
         }
         check("a");

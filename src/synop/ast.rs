@@ -88,14 +88,14 @@ mod tests {
     use parser;
     use token::{Tokenizer, Text};
 
-    fn text(s: &str) -> Expr { Tok(Text(s.to_owned())) }
+    fn text(s: &str) -> Expr { Tok(Text(s.to_string())) }
 
     #[test]
     fn pretty_normalized() {
         fn check(s: &str) {
             let parsed = parser::parse(Tokenizer::new(s.chars())).unwrap();
             let pretty = parsed.pretty();
-            assert_eq!(s.to_owned(), pretty);
+            assert_eq!(s.to_string(), pretty);
             assert_eq!(parsed, parser::parse(Tokenizer::new(pretty.as_slice().chars())).unwrap());
         }
         check("a");

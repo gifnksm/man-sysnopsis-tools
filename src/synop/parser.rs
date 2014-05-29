@@ -99,9 +99,9 @@ mod tests {
         super::parse(Tokenizer::new(s.chars())).unwrap_err()
     }
 
-    fn text(s: &str) -> Expr { Tok(Text(s.to_owned())) }
-    fn short(s: &str) -> Expr { Tok(ShortOpt(s.to_owned())) }
-    fn long(s: &str) -> Expr { Tok(LongOpt(s.to_owned())) }
+    fn text(s: &str) -> Expr { Tok(Text(s.to_string())) }
+    fn short(s: &str) -> Expr { Tok(ShortOpt(s.to_string())) }
+    fn long(s: &str) -> Expr { Tok(LongOpt(s.to_string())) }
 
     #[test]
     fn seq_one() {
@@ -146,7 +146,7 @@ mod tests {
         assert_eq!(Repeat(box Opt(box text("aaa"))), parse("[aaa]..."));
     }
     #[test]
-    fn empty_repeat() { assert_eq!("unexpected token `...` found".to_owned(), parse_err("...")); }
+    fn empty_repeat() { assert_eq!("unexpected token `...` found".to_string(), parse_err("...")); }
 
     #[test]
     fn bar() {
@@ -183,11 +183,11 @@ mod tests {
                    parse("a|{b|c}"));
     }
     #[test]
-    fn unclosed_brace() { assert_eq!("expected `}`, found EOF".to_owned(), parse_err("{a b")) }
+    fn unclosed_brace() { assert_eq!("expected `}`, found EOF".to_string(), parse_err("{a b")) }
     #[test]
-    fn unclosed_bracket() { assert_eq!("expected `]`, found EOF".to_owned(), parse_err("[a |b")); }
+    fn unclosed_bracket() { assert_eq!("expected `]`, found EOF".to_string(), parse_err("[a |b")); }
     #[test]
-    fn unbaranced_parens() { assert_eq!("expected `]`, found `}`".to_owned(), parse_err("[a b}")); }
+    fn unbaranced_parens() { assert_eq!("expected `]`, found `}`".to_string(), parse_err("[a b}")); }
     #[test]
-    fn close_only() { assert_eq!("unexpected token `}` found".to_owned(), parse_err("a }")) }
+    fn close_only() { assert_eq!("unexpected token `}` found".to_string(), parse_err("a }")) }
 }
