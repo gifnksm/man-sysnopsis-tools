@@ -1,6 +1,6 @@
 use token::Token;
 
-#[deriving(Eq, Show, Clone)]
+#[deriving(Eq, PartialEq, Show, Clone)]
 pub enum Expr {
     Tok(Token),
     Seq(Vec<Expr>),

@@ -1,6 +1,6 @@
 use std::iter::Peekable;
 
-#[deriving(Eq, Show, Clone)]
+#[deriving(Eq, PartialEq, Show, Clone)]
 pub enum Token {
     Text(String),
     ShortOpt(String),
