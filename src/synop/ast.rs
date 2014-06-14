@@ -19,7 +19,7 @@ impl Expr {
                         let p = expr.pretty();
                         match *expr {
                             Tok(_) | Opt(_) | Repeat(_) => p,
-                            Seq(_) | Select(_) => format!("\\{{}\\}", p)
+                            Seq(_) | Select(_) => format!("{{{}}}", p)
                         }
                     }).collect::<Vec<String>>()
                     .connect(" ")
@@ -29,7 +29,7 @@ impl Expr {
                 let p = e.pretty();
                 match **e {
                     Tok(_) | Opt(_) | Repeat(_) => format!("{}...", p),
-                    Seq(_) | Select(_) => format!("\\{{}\\}...", p),
+                    Seq(_) | Select(_) => format!("{{{}}}...", p),
                 }
             },
             Select(ref s) => {
@@ -37,7 +37,7 @@ impl Expr {
                     .map(|expr| {
                         let p = expr.pretty();
                         match *expr {
-                            Select(_) => format!("\\{{}\\}", p),
+                            Select(_) => format!("{{{}}}", p),
                             Tok(_) | Opt(_) | Repeat(_) | Seq(_) => p
                         }
                     }).collect::<Vec<String>>()
