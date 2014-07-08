@@ -1,4 +1,4 @@
-#![crate_id = "synopexpand"]
+#![crate_name = "synopexpand"]
 #![crate_type = "bin"]
 
 extern crate cmdutil;

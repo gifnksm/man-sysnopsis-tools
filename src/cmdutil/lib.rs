@@ -1,4 +1,4 @@
-#![crate_id = "cmdutil"]
+#![crate_name = "cmdutil"]
 #![crate_type = "lib"]
 
 use std::io;

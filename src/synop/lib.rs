@@ -1,4 +1,4 @@
-#![crate_id = "synop"]
+#![crate_name = "synop"]
 #![crate_type = "lib"]
 
 pub use token::{Token, Tokenizer};
