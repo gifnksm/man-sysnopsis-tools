@@ -64,7 +64,7 @@ impl<T: Iterator<char>> Iterator<Token> for Tokenizer<T> {
 
                 let mut s = String::new();
                 self.push_while(&mut s, is_option_char);
-                Some(tok(s.to_str()))
+                Some(tok(s.to_string()))
             },
             Some('[') => Some(LBracket),
             Some(']') => Some(RBracket),
@@ -80,7 +80,7 @@ impl<T: Iterator<char>> Iterator<Token> for Tokenizer<T> {
                 let mut s = String::new();
                 s.push_char(c);
                 self.push_while(&mut s, is_option_char);
-                Some(Text(s.to_str()))
+                Some(Text(s.to_string()))
             },
             None => None
         }
