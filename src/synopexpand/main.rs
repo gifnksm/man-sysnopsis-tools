@@ -24,7 +24,7 @@ fn expand(expr: &Expr) -> Vec<Vec<Token>> {
             v
         }
         Opt(ref opt) => {
-            let mut v = expand(*opt);
+            let mut v = expand(&**opt);
             v.unshift(vec![]);
             v
         }
