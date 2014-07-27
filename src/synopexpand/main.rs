@@ -25,7 +25,7 @@ fn expand(expr: &Expr) -> Vec<Vec<Token>> {
         }
         Opt(ref opt) => {
             let mut v = expand(&**opt);
-            v.unshift(vec![]);
+            v.insert(0, vec![]);
             v
         }
         Repeat(box Opt(ref rep)) => {
