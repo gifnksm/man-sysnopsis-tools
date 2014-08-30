@@ -1,4 +1,6 @@
 language: rust
 script:
-  - make
-  - make test
+  - cargo test --verbose --manifest-path ./deps/synop
+  - cargo test --verbose --manifest-path ./deps/cmdutil
+  - cargo build --verbose
+  - cargo test --verbose

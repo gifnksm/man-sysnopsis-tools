@@ -1,0 +1,16 @@
+[root]
+name = "man-synopsis-tools"
+version = "0.0.1"
+dependencies = [
+ "cmdutil 0.0.1",
+ "synop 0.0.1",
+]
+
+[[package]]
+name = "cmdutil"
+version = "0.0.1"
+
+[[package]]
+name = "synop"
+version = "0.0.1"
+

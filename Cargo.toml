@@ -1,0 +1,19 @@
+[package]
+
+name = "man-synopsis-tools"
+version = "0.0.1"
+authors = ["gifnksm <makoto.nksm+github@gmail.com>"]
+
+[dependencies.cmdutil]
+path = "deps/cmdutil"
+
+[dependencies.synop]
+path = "deps/synop"
+
+[[bin]]
+name = "synopfmt"
+path = "src/synopfmt/main.rs"
+
+[[bin]]
+name = "synopexpand"
+path = "src/synopexpand/main.rs"

@@ -1,5 +1,6 @@
 #![crate_name = "synop"]
 #![crate_type = "lib"]
+#![deny(warnings, unused, bad_style, unnecessary_qualification, unnecessary_typecast)]
 
 pub use token::{Token, Tokenizer};
 pub use ast::Expr;

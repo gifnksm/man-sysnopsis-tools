@@ -1,5 +1,2 @@
-bin/*
-lib/*
-doc/*
-.rust
-
+/target
+deps/*/target
