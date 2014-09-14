@@ -2,6 +2,7 @@
 #![crate_type = "bin"]
 #![deny(warnings, unused, bad_style, unnecessary_qualification, unnecessary_typecast)]
 
+#[cfg(not(test))]
 extern crate cmdutil;
 extern crate synop;
 
