@@ -47,7 +47,7 @@ fn expand(expr: &Expr) -> Vec<Vec<Token>> {
         Select(ref sel) => {
             sel.iter()
                 .map(expand)
-                .flat_map(|e| e.move_iter())
+                .flat_map(|e| e.into_iter())
                 .collect()
         }
     }
@@ -79,8 +79,8 @@ mod tests {
     use synop::ast::{Tok, Seq, Opt, Repeat, Select};
 
     fn text_tok(v: Vec<Vec<&str>>) -> Vec<Vec<Token>> {
-        v.move_iter()
-            .map(|x| x.move_iter().map(|s| Text(s.to_string())).collect())
+        v.into_iter()
+            .map(|x| x.into_iter().map(|s| Text(s.to_string())).collect())
             .collect()
     }
     fn text(s: &str) -> Expr { Tok(Text(s.to_string())) }

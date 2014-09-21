@@ -50,10 +50,10 @@ impl Expr {
         match self {
             Tok(_) => Some(self),
             Seq(xs) => {
-                let mut v = xs.move_iter()
+                let mut v = xs.into_iter()
                     .filter_map(|x| x.normalize())
                     .map(|x| match x { Seq(y) => y, _ => vec!(x) })
-                    .flat_map(|xs| xs.move_iter())
+                    .flat_map(|xs| xs.into_iter())
                     .collect::<Vec<_>>();
                 match v.len() {
                     0 => None,
@@ -65,11 +65,11 @@ impl Expr {
             Repeat(x) => x.normalize().map(|y| match y { Repeat(z) => z, _ => box y }).map(Repeat),
             Select(xs) => {
                 let mut has_opt = false;
-                let mut v = xs.move_iter()
+                let mut v = xs.into_iter()
                     .filter_map(|x| x.normalize())
                     .map(|x| match x { Opt(y) => { has_opt = true; *y }, _ => x })
                     .map(|x| match x { Select(y) => y, _ => vec!(x) })
-                    .flat_map(|xs| xs.move_iter())
+                    .flat_map(|xs| xs.into_iter())
                     .collect::<Vec<_>>();
                 let sel = match v.len() {
                     0 => None,
