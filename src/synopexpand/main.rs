@@ -19,7 +19,7 @@ fn expand(expr: &Expr) -> Vec<Vec<Token>> {
             for ss in seq.iter().map(expand) {
                 let mut v2 = vec![];
                 for s in ss.iter() {
-                    v2.extend(v.iter().map(|x| x.clone().append(s.as_slice())));
+                    v2.extend(v.iter().map(|x| *x + *s))
                 }
                 v = v2;
             }
@@ -32,16 +32,16 @@ fn expand(expr: &Expr) -> Vec<Vec<Token>> {
         }
         Repeat(box Opt(ref rep)) => {
             let mut v = vec![];
-            v.push_all_move(expand(&Seq(vec![])));
-            v.push_all_move(expand(&Seq(vec![(**rep).clone()])));
-            v.push_all_move(expand(&Seq(vec![(**rep).clone(), (**rep).clone()])));
+            v.extend(expand(&Seq(vec![])).into_iter());
+            v.extend(expand(&Seq(vec![(**rep).clone()])).into_iter());
+            v.extend(expand(&Seq(vec![(**rep).clone(), (**rep).clone()])).into_iter());
             v
         }
         Repeat(ref rep) => {
             let mut v = vec![];
-            v.push_all_move(expand(&Seq(vec![(**rep).clone()])));
-            v.push_all_move(expand(&Seq(vec![(**rep).clone(), (**rep).clone()])));
-            v.push_all_move(expand(&Seq(vec![(**rep).clone(), (**rep).clone(), (**rep).clone()])));
+            v.extend(expand(&Seq(vec![(**rep).clone()])).into_iter());
+            v.extend(expand(&Seq(vec![(**rep).clone(), (**rep).clone()])).into_iter());
+            v.extend(expand(&Seq(vec![(**rep).clone(), (**rep).clone(), (**rep).clone()])).into_iter());
             v
         }
         Select(ref sel) => {
