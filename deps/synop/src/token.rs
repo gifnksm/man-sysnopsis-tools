@@ -42,7 +42,7 @@ impl<T: Iterator<char>> Tokenizer<T> {
             match self.input.peek() {
                 Some(&c) => {
                     if !pred(c) { break; }
-                    buf.push_char(c);
+                    buf.push(c);
                     self.input.next();
                 },
                 None => break
@@ -78,7 +78,7 @@ impl<T: Iterator<char>> Iterator<Token> for Tokenizer<T> {
             Some('|') => Some(Bar),
             Some(c) => {
                 let mut s = String::new();
-                s.push_char(c);
+                s.push(c);
                 self.push_while(&mut s, is_option_char);
                 Some(Text(s.to_string()))
             },
