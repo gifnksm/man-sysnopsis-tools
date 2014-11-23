@@ -1,5 +1,7 @@
-use token::{Tokenizer, Token, Text, ShortOpt, LongOpt, LBracket, RBracket, LBrace, RBrace, Dots, Bar};
-use ast::{Expr, Tok, Seq, Opt, Repeat, Select};
+use token::{Tokenizer, Token};
+use token::Token::*;
+use ast::Expr;
+use ast::Expr::*;
 
 pub type ParseResult<T> = Result<T, String>;
 
@@ -82,8 +84,10 @@ fn unexpected_msg(unexpect: &Token) -> String {
 
 #[cfg(test)]
 mod tests {
-    use token::{Tokenizer, Text, ShortOpt, LongOpt};
-    use ast::{Expr, Tok, Seq, Opt, Repeat, Select};
+    use token::Tokenizer;
+    use token::Token::*;
+    use ast::Expr;
+    use ast::Expr::*;
 
     fn parse(s: &str) -> Expr {
         let p  = super::parse(Tokenizer::new(s.chars())).unwrap();

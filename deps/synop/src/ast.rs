@@ -1,4 +1,5 @@
 use token::Token;
+use ast::Expr::*;
 
 #[deriving(Eq, PartialEq, Show, Clone)]
 pub enum Expr {
@@ -84,9 +85,11 @@ impl Expr {
 
 #[cfg(test)]
 mod tests {
-    use super::{Expr, Tok, Seq, Opt, Repeat, Select};
+    use super::Expr;
+    use super::Expr::*;
     use parser;
-    use token::{Tokenizer, Text};
+    use token::Tokenizer;
+    use token::Token::Text;
 
     fn text(s: &str) -> Expr { Tok(Text(s.to_string())) }
 

@@ -1,4 +1,5 @@
 use std::iter::Peekable;
+use token::Token::*;
 
 #[deriving(Eq, PartialEq, Show, Clone)]
 pub enum Token {
@@ -89,8 +90,8 @@ impl<T: Iterator<char>> Iterator<Token> for Tokenizer<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Tokenizer, Token, Text, ShortOpt, LongOpt,
-                LBracket, RBracket, LBrace, RBrace, Dots, Bar};
+    use super::{Tokenizer, Token};
+    use super::Token::*;
 
     fn check(output: &[Token], input: &str) {
         let v = Tokenizer::new(input.chars()).collect::<Vec<_>>();
