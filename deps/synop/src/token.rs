@@ -103,25 +103,25 @@ mod tests {
 
     #[test]
     fn short_opt() {
-        check([short("")], "-");
-        check([short("a")], "-a");
-        check([short("a")], "  -a  ");
-        check([short("a"), short("b"), short("c"), short("1")], "-a -b -c -1");
-        check([short("a"), short("b"), short("c"), short("1")], "  -a -b   -c   -1  ");
+        check(&[short("")], "-");
+        check(&[short("a")], "-a");
+        check(&[short("a")], "  -a  ");
+        check(&[short("a"), short("b"), short("c"), short("1")], "-a -b -c -1");
+        check(&[short("a"), short("b"), short("c"), short("1")], "  -a -b   -c   -1  ");
     }
 
     #[test]
     fn long_opt() {
-        check([long("")], "--");
-        check([long("long")], "--long");
-        check([long("aaa"), long("bbb"), long("ccc"), long("123")], "--aaa --bbb --ccc --123");
-        check([long("aaa"), long("bbb"), long("ccc"), long("123")], "  --aaa --bbb   --ccc --123");
-        check([long("aaa"), long("bbb"), long("ccc--1_23")], "  --aaa --bbb   --ccc--1_23");
+        check(&[long("")], "--");
+        check(&[long("long")], "--long");
+        check(&[long("aaa"), long("bbb"), long("ccc"), long("123")], "--aaa --bbb --ccc --123");
+        check(&[long("aaa"), long("bbb"), long("ccc"), long("123")], "  --aaa --bbb   --ccc --123");
+        check(&[long("aaa"), long("bbb"), long("ccc--1_23")], "  --aaa --bbb   --ccc--1_23");
     }
 
     #[test]
     fn mixed() {
-        check([short("a"), LBrace, text("a"), Bar, text("b"), Bar, text("c"), RBrace,
+        check(&[short("a"), LBrace, text("a"), Bar, text("b"), Bar, text("c"), RBrace,
                LBracket, text("p"), Dots, RBracket],
               "-a {a|b|c} [p ...]")
     }
