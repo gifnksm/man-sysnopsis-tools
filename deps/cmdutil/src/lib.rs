@@ -1,6 +1,6 @@
 #![crate_name = "cmdutil"]
 #![crate_type = "lib"]
-#![deny(warnings, unused, bad_style, unnecessary_qualification, unnecessary_typecast)]
+#![deny(warnings, unused, bad_style, unused_qualifications, unused_typecasts)]
 
 use std::io;
 use std::fmt::Show;

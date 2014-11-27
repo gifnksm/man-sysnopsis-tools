@@ -1,6 +1,6 @@
 #![crate_name = "synopexpand"]
 #![crate_type = "bin"]
-#![deny(warnings, unused, bad_style, unnecessary_qualification, unnecessary_typecast)]
+#![deny(warnings, unused, bad_style, unused_qualifications, unused_typecasts)]
 
 #[cfg(not(test))]
 extern crate cmdutil;

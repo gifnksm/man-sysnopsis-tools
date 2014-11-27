@@ -1,6 +1,6 @@
 #![crate_name = "synop"]
 #![crate_type = "lib"]
-#![deny(warnings, unused, bad_style, unnecessary_typecast)]
+#![deny(warnings, unused, bad_style, unused_typecasts)]
 
 #![feature(globs)]
 
