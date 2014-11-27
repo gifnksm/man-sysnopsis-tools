@@ -9,7 +9,7 @@ extern crate synop;
 #[cfg(not(test))]
 use std::io;
 use synop::{Token, Expr};
-use synop::ast::{Tok, Seq, Opt, Repeat, Select};
+use synop::Expr::{Tok, Seq, Opt, Repeat, Select};
 
 fn expand(expr: &Expr) -> Vec<Vec<Token>> {
     match *expr {
@@ -75,8 +75,8 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use synop::{Token, Expr};
-    use synop::token::Text;
-    use synop::ast::{Tok, Seq, Opt, Repeat, Select};
+    use synop::Token::Text;
+    use synop::Expr::{Tok, Seq, Opt, Repeat, Select};
 
     fn text_tok(v: Vec<Vec<&str>>) -> Vec<Vec<Token>> {
         v.into_iter()
