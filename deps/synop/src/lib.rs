@@ -2,7 +2,7 @@
 #![crate_type = "lib"]
 #![deny(warnings, unused, bad_style, unused_typecasts)]
 
-#![feature(globs)]
+#![feature(associated_types, globs)]
 
 pub use token::{Token, Tokenizer};
 pub use ast::Expr;

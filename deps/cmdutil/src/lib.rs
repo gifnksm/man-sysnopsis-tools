@@ -5,7 +5,7 @@
 use std::io;
 use std::fmt::Show;
 
-pub fn main<E: Show>(f: proc() -> Result<(), E>) {
+pub fn main<E: Show, F: FnOnce() -> Result<(), E>>(f: F) {
     match f() {
         Ok(()) => {}
         Err(msg) => {

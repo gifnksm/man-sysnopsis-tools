@@ -5,7 +5,7 @@ use ast::Expr::*;
 
 pub type ParseResult<T> = Result<T, String>;
 
-pub fn parse<T: Iterator<char>>(mut tokenizer: Tokenizer<T>) -> ParseResult<Expr> {
+pub fn parse<T: Iterator<Item = char>>(mut tokenizer: Tokenizer<T>) -> ParseResult<Expr> {
     let (expr, next_token) = try!(parse_expr(&mut tokenizer));
     if next_token != None {
         return Err(unexpected_msg(&next_token.unwrap()));
@@ -13,7 +13,7 @@ pub fn parse<T: Iterator<char>>(mut tokenizer: Tokenizer<T>) -> ParseResult<Expr
     Ok(expr)
 }
 
-fn parse_expr<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<(Expr, Option<Token>)> {
+fn parse_expr<T: Iterator<Item = Token>>(tokenizer: &mut T) -> ParseResult<(Expr, Option<Token>)> {
     let mut v = Vec::new();
     loop {
         let (term, n) = try!(parse_term(&mut *tokenizer));
@@ -27,7 +27,7 @@ fn parse_expr<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<(Expr, Optio
     }
 }
 
-fn parse_term<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<(Expr, Option<Token>)> {
+fn parse_term<T: Iterator<Item = Token>>(tokenizer: &mut T) -> ParseResult<(Expr, Option<Token>)> {
     let mut v = Vec::new();
     loop {
         match tokenizer.next() {
@@ -54,13 +54,13 @@ fn parse_term<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<(Expr, Optio
     }
 }
 
-fn parse_bracket<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<Expr> {
+fn parse_bracket<T: Iterator<Item = Token>>(tokenizer: &mut T) -> ParseResult<Expr> {
     let (expr, c) = try!(parse_expr(&mut *tokenizer));
     try!(expect_token(&RBracket, &c));
     Ok(Opt(box expr))
 }
 
-fn parse_brace<T: Iterator<Token>>(tokenizer: &mut T) -> ParseResult<Expr> {
+fn parse_brace<T: Iterator<Item = Token>>(tokenizer: &mut T) -> ParseResult<Expr> {
     let (expr, c) = try!(parse_expr(&mut *tokenizer));
     try!(expect_token(&RBrace, &c));
     Ok(expr)

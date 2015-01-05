@@ -19,7 +19,7 @@ fn expand(expr: &Expr) -> Vec<Vec<Token>> {
             for ss in seq.iter().map(expand) {
                 let mut v2 = vec![];
                 for s in ss.iter() {
-                    v2.extend(v.iter().map(|x| *x + *s))
+                    v2.extend(v.iter().cloned().map(|x| x + s.as_slice()))
                 }
                 v = v2;
             }
@@ -62,8 +62,11 @@ fn print_expand(expr: &Expr) {
 
 #[cfg(not(test))]
 fn main() {
-    cmdutil::main(proc() {
-        let ast = try!(synop::read_ast(&mut io::stdin()));
+    cmdutil::main(|| {
+        let ast = match synop::read_ast(io::stdin()) {
+            Ok(ast) => ast,
+            Err(s)  => return Err(s)
+        };
         match ast.normalize() {
             Some(e) => print_expand(&e),
             None => {}
@@ -87,7 +90,7 @@ mod tests {
 
     #[test]
     fn expand() {
-        assert_eq!(text_tok(vec![vec!["a"]]), super::expand(&text("a")))
+        assert_eq!(text_tok(vec![vec!["a"]]), super::expand(&text("a")));
         assert_eq!(text_tok(vec![vec!["a", "b"]]),
                    super::expand(&Seq(vec![text("a"), text("b")])));
         assert_eq!(text_tok(vec![vec![], vec!["a"]]),

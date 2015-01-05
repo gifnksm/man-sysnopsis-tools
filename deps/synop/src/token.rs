@@ -1,7 +1,7 @@
 use std::iter::Peekable;
 use token::Token::*;
 
-#[deriving(Eq, PartialEq, Show, Clone)]
+#[derive(Eq, PartialEq, Show, Clone)]
 pub enum Token {
     Text(String),
     ShortOpt(String),
@@ -30,11 +30,11 @@ impl Token {
     }
 }
 
-pub struct Tokenizer<T> { input: Peekable<char, T> }
+pub struct Tokenizer<T: Iterator<Item = char>> { input: Peekable<char, T> }
 
 fn is_option_char(c: char) -> bool { c.is_alphanumeric() || c == '-' || c == '_' }
 
-impl<T: Iterator<char>> Tokenizer<T> {
+impl<T: Iterator<Item = char>> Tokenizer<T> {
     #[inline]
     pub fn new(input: T) -> Tokenizer<T> { Tokenizer { input: input.peekable() } }
 
@@ -52,15 +52,17 @@ impl<T: Iterator<char>> Tokenizer<T> {
     }
 }
 
-impl<T: Iterator<char>> Iterator<Token> for Tokenizer<T> {
+impl<T: Iterator<Item = char>> Iterator for Tokenizer<T> {
+    type Item = Token;
+
     fn next(&mut self) -> Option<Token> {
         match self.input.by_ref().skip_while(|&c| c.is_whitespace()).next() {
             Some('-') => {
                 let tok = if self.input.peek() == Some(&'-') {
                     self.input.next();
-                    LongOpt
+                    LongOpt as fn(String) -> Token
                 } else {
-                    ShortOpt
+                    ShortOpt as fn(String) -> Token
                 };
 
                 let mut s = String::new();

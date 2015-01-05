@@ -1,7 +1,7 @@
 use token::Token;
 use ast::Expr::*;
 
-#[deriving(Eq, PartialEq, Show, Clone)]
+#[derive(Eq, PartialEq, Show, Clone)]
 pub enum Expr {
     Tok(Token),
     Seq(Vec<Expr>),
