@@ -38,7 +38,9 @@ impl<T: Iterator<Item = char>> Tokenizer<T> {
     #[inline]
     pub fn new(input: T) -> Tokenizer<T> { Tokenizer { input: input.peekable() } }
 
-    fn push_while(&mut self, buf: &mut String, pred: |char| -> bool) {
+    fn push_while<F>(&mut self, buf: &mut String, pred: F)
+        where F: Fn(char) -> bool
+    {
         loop {
             match self.input.peek() {
                 Some(&c) => {

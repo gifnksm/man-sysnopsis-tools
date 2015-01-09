@@ -1,11 +1,11 @@
 #![crate_name = "cmdutil"]
 #![crate_type = "lib"]
-#![deny(warnings, unused, bad_style, unused_qualifications, unused_typecasts)]
+#![warn(unused, bad_style, unused_qualifications, unused_typecasts)]
 
 use std::io;
-use std::fmt::Show;
+use std::fmt;
 
-pub fn main<E: Show, F: FnOnce() -> Result<(), E>>(f: F) {
+pub fn main<E: fmt::String, F: FnOnce() -> Result<(), E>>(f: F) {
     match f() {
         Ok(()) => {}
         Err(msg) => {

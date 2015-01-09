@@ -1,6 +1,6 @@
 #![crate_name = "synopexpand"]
 #![crate_type = "bin"]
-#![deny(warnings, unused, bad_style, unused_qualifications, unused_typecasts)]
+#![warn(unused, bad_style, unused_qualifications, unused_typecasts)]
 
 #[cfg(not(test))]
 extern crate cmdutil;
@@ -30,19 +30,20 @@ fn expand(expr: &Expr) -> Vec<Vec<Token>> {
             v.insert(0, vec![]);
             v
         }
-        Repeat(box Opt(ref rep)) => {
-            let mut v = vec![];
-            v.extend(expand(&Seq(vec![])).into_iter());
-            v.extend(expand(&Seq(vec![(**rep).clone()])).into_iter());
-            v.extend(expand(&Seq(vec![(**rep).clone(), (**rep).clone()])).into_iter());
-            v
-        }
         Repeat(ref rep) => {
-            let mut v = vec![];
-            v.extend(expand(&Seq(vec![(**rep).clone()])).into_iter());
-            v.extend(expand(&Seq(vec![(**rep).clone(), (**rep).clone()])).into_iter());
-            v.extend(expand(&Seq(vec![(**rep).clone(), (**rep).clone(), (**rep).clone()])).into_iter());
-            v
+            if let Opt(ref rep) = **rep {
+                let mut v = vec![];
+                v.extend(expand(&Seq(vec![])).into_iter());
+                v.extend(expand(&Seq(vec![(**rep).clone()])).into_iter());
+                v.extend(expand(&Seq(vec![(**rep).clone(), (**rep).clone()])).into_iter());
+                v
+            } else {
+                let mut v = vec![];
+                v.extend(expand(&Seq(vec![(**rep).clone()])).into_iter());
+                v.extend(expand(&Seq(vec![(**rep).clone(), (**rep).clone()])).into_iter());
+                v.extend(expand(&Seq(vec![(**rep).clone(), (**rep).clone(), (**rep).clone()])).into_iter());
+                v
+            }
         }
         Select(ref sel) => {
             sel.iter()
@@ -94,11 +95,11 @@ mod tests {
         assert_eq!(text_tok(vec![vec!["a", "b"]]),
                    super::expand(&Seq(vec![text("a"), text("b")])));
         assert_eq!(text_tok(vec![vec![], vec!["a"]]),
-                   super::expand(&Opt(box text("a"))));
+                   super::expand(&Opt(Box::new(text("a")))));
         assert_eq!(text_tok(vec![vec!["a"], vec!["a", "a"], vec!["a", "a", "a"]]),
-                   super::expand(&Repeat(box text("a"))));
+                   super::expand(&Repeat(Box::new(text("a")))));
         assert_eq!(text_tok(vec![vec![], vec!["a"], vec!["a", "a"]]),
-                   super::expand(&Repeat(box Opt(box text("a")))));
+                   super::expand(&Repeat(Box::new(Opt(Box::new(text("a")))))));
         assert_eq!(text_tok(vec![vec!["a"], vec!["b"], vec!["c"]]),
                    super::expand(&Select(vec![text("a"), text("b"), text("c")])));
 

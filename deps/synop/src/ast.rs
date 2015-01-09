@@ -53,7 +53,7 @@ impl Expr {
             Seq(xs) => {
                 let mut v = xs.into_iter()
                     .filter_map(|x| x.normalize())
-                    .map(|x| match x { Seq(y) => y, _ => vec!(x) })
+                    .map(|x| match x { Seq(y) => y, _ => vec![x] })
                     .flat_map(|xs| xs.into_iter())
                     .collect::<Vec<_>>();
                 match v.len() {
@@ -62,14 +62,14 @@ impl Expr {
                     _ => Some(Seq(v))
                 }
             }
-            Opt(x)    => x.normalize().map(|y| match y { Opt(z)    => z, _ => box y }).map(Opt),
-            Repeat(x) => x.normalize().map(|y| match y { Repeat(z) => z, _ => box y }).map(Repeat),
+            Opt(x)    => x.normalize().map(|y| match y { Opt(z)    => z, _ => Box::new(y) }).map(Opt),
+            Repeat(x) => x.normalize().map(|y| match y { Repeat(z) => z, _ => Box::new(y) }).map(Repeat),
             Select(xs) => {
                 let mut has_opt = false;
                 let mut v = xs.into_iter()
                     .filter_map(|x| x.normalize())
                     .map(|x| match x { Opt(y) => { has_opt = true; *y }, _ => x })
-                    .map(|x| match x { Select(y) => y, _ => vec!(x) })
+                    .map(|x| match x { Select(y) => y, _ => vec![x] })
                     .flat_map(|xs| xs.into_iter())
                     .collect::<Vec<_>>();
                 let sel = match v.len() {
@@ -77,7 +77,7 @@ impl Expr {
                     1 => Some(v.pop().unwrap()),
                     _ => Some(Select(v))
                 };
-                if has_opt { sel.map(|x| Opt(box x)) } else { sel }
+                if has_opt { sel.map(|x| Opt(Box::new(x))) } else { sel }
             }
         }
     }
@@ -118,15 +118,17 @@ mod tests {
             assert_eq!(result, input.normalize());
         }
 
-        check(Some(text("aa")), Seq(vec!(text("aa"))));
-        check(None, Seq(vec!()));
-        check(None, Opt(box Seq(vec!())));
-        check(None, Opt(box Opt(box Seq(vec!()))));
-        check(None, Opt(box Opt(box Opt(box Seq(vec!())))));
-        check(Some(Repeat(box text("aa"))), Repeat(box Repeat(box text("aa"))));
-        check(Some(text("aa")), Select(vec!(text("aa"))));
-        check(Some(Seq(vec!(text("a"), text("b"), text("c")))),
-              Seq(vec!(Seq(vec!(text("a"), text("b"))), text("c"))));
-        check(Some(Repeat(box text("a"))), Repeat(box Seq(vec!(Repeat(box text("a"))))));
+        check(Some(text("aa")), Seq(vec![text("aa")]));
+        check(None, Seq(vec![]));
+        check(None, Opt(Box::new(Seq(vec![]))));
+        check(None, Opt(Box::new(Opt(Box::new(Seq(vec![]))))));
+        check(None, Opt(Box::new(Opt(Box::new(Opt(Box::new(Seq(vec![]))))))));
+        check(Some(Repeat(Box::new(text("aa")))),
+              Repeat(Box::new(Repeat(Box::new(text("aa"))))));
+        check(Some(text("aa")), Select(vec![text("aa")]));
+        check(Some(Seq(vec![text("a"), text("b"), text("c")])),
+              Seq(vec![Seq(vec![text("a"), text("b")]), text("c")]));
+        check(Some(Repeat(Box::new(text("a")))),
+              Repeat(Box::new(Seq(vec![Repeat(Box::new(text("a")))]))));
     }
 }

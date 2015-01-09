@@ -36,7 +36,7 @@ fn parse_term<T: Iterator<Item = Token>>(tokenizer: &mut T) -> ParseResult<(Expr
             Some(Dots) => {
                 // Only last one element is repeated in this implementation.
                 match v.pop() {
-                    Some(last) => v.push(Repeat(box last)),
+                    Some(last) => v.push(Repeat(Box::new(last))),
                     None => return Err(unexpected_msg(&Dots))
                 }
             },
@@ -57,7 +57,7 @@ fn parse_term<T: Iterator<Item = Token>>(tokenizer: &mut T) -> ParseResult<(Expr
 fn parse_bracket<T: Iterator<Item = Token>>(tokenizer: &mut T) -> ParseResult<Expr> {
     let (expr, c) = try!(parse_expr(&mut *tokenizer));
     try!(expect_token(&RBracket, &c));
-    Ok(Opt(box expr))
+    Ok(Opt(Box::new(expr)))
 }
 
 fn parse_brace<T: Iterator<Item = Token>>(tokenizer: &mut T) -> ParseResult<Expr> {
@@ -92,11 +92,7 @@ mod tests {
     fn parse(s: &str) -> Expr {
         let p  = super::parse(Tokenizer::new(s.chars())).unwrap();
         let pp = super::parse(Tokenizer::new(p.pretty().as_slice().chars())).unwrap();
-        if p != pp {
-            println!("{} => {}", s, p);
-            println!("{} => {}", p.pretty(), pp);
-            assert_eq!(p, pp);
-        }
+        assert_eq!(p, pp);
         p
     }
     fn parse_err(s: &str) -> String {
@@ -113,41 +109,47 @@ mod tests {
     }
     #[test]
     fn seq_multi() {
-        assert_eq!(Seq(vec!(short("a"), short("b"), text("c"), long("foo"))),
+        assert_eq!(Seq(vec![short("a"), short("b"), text("c"), long("foo")]),
                    parse("-a -b c --foo"));
     }
     #[test]
     fn seq_empty() {
-        assert_eq!(Seq(vec!()), parse(""));
+        assert_eq!(Seq(vec![]), parse(""));
     }
     #[test]
     fn set_nested() {
-        assert_eq!(Seq(vec!(Seq(vec!(text("a"), text("b"))), text("c"))),
+        assert_eq!(Seq(vec![Seq(vec![text("a"), text("b")]), text("c")]),
                    parse("{a b} c"));
     }
 
     #[test]
-    fn opt() { assert_eq!(Opt(box text("aaa")), parse("[aaa]")); }
+    fn opt() { assert_eq!(Opt(Box::new(text("aaa"))), parse("[aaa]")); }
     #[test]
     fn opt_nested() {
-        assert_eq!(Opt(box Seq(vec!(text("a"), Opt(box text("b")), text("c")))), parse("[a[b]c]"));
-        assert_eq!(Opt(box Opt(box text("a"))), parse("[[a]]"));
+        assert_eq!(Opt(Box::new(Seq(vec![text("a"), Opt(Box::new(text("b"))), text("c")]))),
+                   parse("[a[b]c]"));
+        assert_eq!(Opt(Box::new(Opt(Box::new(text("a"))))),
+                   parse("[[a]]"));
     }
     #[test]
-    fn opt_empty() { assert_eq!(Opt(box Seq(vec!())), parse("[]")); }
+    fn opt_empty() { assert_eq!(Opt(Box::new(Seq(vec![]))),
+                                parse("[]")); }
     #[test]
-    fn opt_nested_empty() { assert_eq!(Opt(box Opt(box Seq(vec!()))), parse("[[]]")); }
+    fn opt_nested_empty() { assert_eq!(Opt(Box::new(Opt(Box::new(Seq(vec![]))))),
+                                           parse("[[]]")); }
 
     #[test]
     fn repeat() {
-        assert_eq!(Seq(vec!(text("aaa"), Repeat(box text("bbb")))), parse("aaa bbb ..."));
-        assert_eq!(Repeat(box Repeat(box text("aaa"))), parse("aaa ... ..."));
+        assert_eq!(Seq(vec![text("aaa"), Repeat(Box::new(text("bbb")))]),
+                   parse("aaa bbb ..."));
+        assert_eq!(Repeat(Box::new(Repeat(Box::new(text("aaa"))))),
+                   parse("aaa ... ..."));
     }
     #[test]
     fn repeat_with_group() {
-        assert_eq!(Seq(vec!(text("aaa"), Repeat(box text("bbb")))), parse("aaa {bbb}..."));
-        assert_eq!(Repeat(box Seq(vec!(text("aaa"), text("bbb")))), parse("{aaa bbb}..."));
-        assert_eq!(Repeat(box Opt(box text("aaa"))), parse("[aaa]..."));
+        assert_eq!(Seq(vec![text("aaa"), Repeat(Box::new(text("bbb")))]), parse("aaa {bbb}..."));
+        assert_eq!(Repeat(Box::new(Seq(vec![text("aaa"), text("bbb")]))), parse("{aaa bbb}..."));
+        assert_eq!(Repeat(Box::new(Opt(Box::new(text("aaa"))))), parse("[aaa]..."));
     }
     #[test]
     fn empty_repeat() { assert_eq!("unexpected token `...` found".to_string(), parse_err("...")); }
@@ -164,21 +166,21 @@ mod tests {
                                Seq(vec!(text("c"), text("d"))),
                                Seq(vec!(text("e"), text("f"))))),
                    parse("a b|c d|e f"));
-        assert_eq!(Select(vec!(Opt(box text("b")), text("ccc"))), parse("[b]|ccc"));
-        assert_eq!(Select(vec!(Opt(box text("b")), Opt(box text("ccc")))), parse("[b]|[ccc]"));
-        assert_eq!(Select(vec!(text("a"), Opt(box text("b")), text("ccc"))), parse("a|[b]|ccc"));
-        assert_eq!(Select(vec!(text("a"), Opt(box Select(vec!(text("b"), text("c")))), text("ccc"))),
+        assert_eq!(Select(vec!(Opt(Box::new(text("b"))), text("ccc"))), parse("[b]|ccc"));
+        assert_eq!(Select(vec!(Opt(Box::new(text("b"))), Opt(Box::new(text("ccc"))))), parse("[b]|[ccc]"));
+        assert_eq!(Select(vec!(text("a"), Opt(Box::new(text("b"))), text("ccc"))), parse("a|[b]|ccc"));
+        assert_eq!(Select(vec!(text("a"), Opt(Box::new(Select(vec![text("b"), text("c")]))), text("ccc"))),
                    parse("a|[b|c]|ccc"));
-        assert_eq!(Seq(vec!(text("a"), Opt(box Select(vec!(text("b"), text("c")))), text("d"))),
+        assert_eq!(Seq(vec![text("a"), Opt(Box::new(Select(vec![text("b"), text("c")]))), text("d")]),
                    parse("a [b|c] d"));
     }
 
     #[test]
     fn bar_empty() {
-        assert_eq!(Select(vec!(text("a"), Seq(vec!()), text("c"))), parse("a||c"));
-        assert_eq!(Seq(vec!(text("a"), Select(vec!(Seq(vec!()), text("a"))), text("c"))),
+        assert_eq!(Select(vec!(text("a"), Seq(vec![]), text("c"))), parse("a||c"));
+        assert_eq!(Seq(vec!(text("a"), Select(vec!(Seq(vec![]), text("a"))), text("c"))),
                    parse("a{|a}c"));
-        assert_eq!(Seq(vec!(text("a"), Select(vec!(Seq(vec!()), Seq(vec!()))), text("c"))),
+        assert_eq!(Seq(vec!(text("a"), Select(vec!(Seq(vec![]), Seq(vec![]))), text("c"))),
                    parse("a{|}c"));
     }
     #[test]
