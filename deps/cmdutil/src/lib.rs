@@ -5,7 +5,7 @@
 use std::io;
 use std::fmt;
 
-pub fn main<E: fmt::String, F: FnOnce() -> Result<(), E>>(f: F) {
+pub fn main<E: fmt::Display, F: FnOnce() -> Result<(), E>>(f: F) {
     match f() {
         Ok(()) => {}
         Err(msg) => {
