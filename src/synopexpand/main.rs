@@ -2,12 +2,15 @@
 #![crate_type = "bin"]
 #![warn(unused, bad_style, unused_qualifications, unused_typecasts)]
 
+#![feature(core)]
+#![cfg_attr(not(test), feature(io))]
+
 #[cfg(not(test))]
 extern crate cmdutil;
 extern crate synop;
 
 #[cfg(not(test))]
-use std::io;
+use std::old_io as io;
 use synop::{Token, Expr};
 use synop::Expr::{Tok, Seq, Opt, Repeat, Select};
 
@@ -19,7 +22,7 @@ fn expand(expr: &Expr) -> Vec<Vec<Token>> {
             for ss in seq.iter().map(expand) {
                 let mut v2 = vec![];
                 for s in ss.iter() {
-                    v2.extend(v.iter().cloned().map(|x| x + s.as_slice()))
+                    v2.extend(v.iter().cloned().map(|x| x + s))
                 }
                 v = v2;
             }

@@ -1,4 +1,4 @@
-use std::io::BufferedReader;
+use std::old_io::BufferedReader;
 use super::Tokenizer;
 use ast::Expr;
 

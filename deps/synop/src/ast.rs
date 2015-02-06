@@ -1,7 +1,7 @@
 use token::Token;
 use ast::Expr::*;
 
-#[derive(Eq, PartialEq, Show, Clone)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 pub enum Expr {
     Tok(Token),
     Seq(Vec<Expr>),
@@ -99,7 +99,7 @@ mod tests {
             let parsed = parser::parse(Tokenizer::new(s.chars())).unwrap();
             let pretty = parsed.pretty();
             assert_eq!(s.to_string(), pretty);
-            assert_eq!(parsed, parser::parse(Tokenizer::new(pretty.as_slice().chars())).unwrap());
+            assert_eq!(parsed, parser::parse(Tokenizer::new(pretty.chars())).unwrap());
         }
         check("a");
         check("-b");
