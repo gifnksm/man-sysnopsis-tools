@@ -2,15 +2,13 @@
 #![crate_type = "bin"]
 #![warn(unused, bad_style, unused_qualifications, unused_typecasts)]
 
-#![cfg_attr(not(test), feature(io))]
-
 #[cfg(not(test))]
 extern crate cmdutil;
 #[cfg(not(test))]
 extern crate synop;
 
 #[cfg(not(test))]
-use std::old_io as io;
+use std::io;
 
 #[cfg(not(test))]
 fn main() {

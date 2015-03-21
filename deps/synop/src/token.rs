@@ -131,7 +131,7 @@ mod tests {
     }
 
     #[test]
-    #[should_fail]
+    #[should_panic]
     fn invalid_dots() {
         for _tok in Tokenizer::new("....".chars()) {}
     }

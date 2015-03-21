@@ -3,14 +3,13 @@
 #![warn(unused, bad_style, unused_qualifications, unused_typecasts)]
 
 #![feature(core)]
-#![cfg_attr(not(test), feature(io))]
 
 #[cfg(not(test))]
 extern crate cmdutil;
 extern crate synop;
 
 #[cfg(not(test))]
-use std::old_io as io;
+use std::io;
 use synop::{Token, Expr};
 use synop::Expr::{Tok, Seq, Opt, Repeat, Select};
 
