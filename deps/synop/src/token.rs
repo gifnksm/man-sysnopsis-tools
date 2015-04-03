@@ -99,7 +99,7 @@ mod tests {
 
     fn check(output: &[Token], input: &str) {
         let v = Tokenizer::new(input.chars()).collect::<Vec<_>>();
-        assert_eq!(output, v);
+        assert_eq!(output, &v[..]);
     }
     fn short(s: &str) -> Token { ShortOpt(s.to_string()) }
     fn long(s: &str) -> Token { LongOpt(s.to_string()) }

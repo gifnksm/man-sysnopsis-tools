@@ -91,7 +91,7 @@ mod tests {
 
     fn parse(s: &str) -> Expr {
         let p  = super::parse(Tokenizer::new(s.chars())).unwrap();
-        let pp = super::parse(Tokenizer::new(p.pretty().as_slice().chars())).unwrap();
+        let pp = super::parse(Tokenizer::new(p.pretty().chars())).unwrap();
         assert_eq!(p, pp);
         p
     }

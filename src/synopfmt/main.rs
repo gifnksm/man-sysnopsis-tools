@@ -1,6 +1,6 @@
 #![crate_name = "synopfmt"]
 #![crate_type = "bin"]
-#![warn(unused, bad_style, unused_qualifications, unused_typecasts)]
+#![warn(unused, bad_style, unused_qualifications)]
 
 #[cfg(not(test))]
 extern crate cmdutil;

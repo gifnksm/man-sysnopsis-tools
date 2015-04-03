@@ -1,6 +1,6 @@
 #![crate_name = "cmdutil"]
 #![crate_type = "lib"]
-#![warn(unused, bad_style, unused_qualifications, unused_typecasts)]
+#![warn(unused, bad_style, unused_qualifications)]
 
 use std::io;
 use std::io::prelude::*;

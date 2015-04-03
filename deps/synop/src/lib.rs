@@ -1,9 +1,8 @@
 #![crate_name = "synop"]
 #![crate_type = "lib"]
-#![warn(unused, bad_style, unused_typecasts)]
+#![warn(unused, bad_style)]
 
 #![feature(io)]
-#![cfg_attr(test, feature(core))]
 
 pub use token::{Token, Tokenizer};
 pub use ast::Expr;
