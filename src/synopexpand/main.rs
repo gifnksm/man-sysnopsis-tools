@@ -2,6 +2,8 @@
 #![crate_type = "bin"]
 #![warn(unused, bad_style, unused_qualifications)]
 
+#![feature(collections)]
+
 #[cfg(not(test))]
 extern crate cmdutil;
 extern crate synop;
@@ -19,7 +21,10 @@ fn expand(expr: &Expr) -> Vec<Vec<Token>> {
             for ss in seq.iter().map(expand) {
                 let mut v2 = vec![];
                 for s in ss.iter() {
-                    v2.extend(v.iter().cloned().map(|x| x + s))
+                    v2.extend(v.iter().cloned().map(|mut x| {
+                        x.push_all(s);
+                        x
+                    }))
                 }
                 v = v2;
             }
