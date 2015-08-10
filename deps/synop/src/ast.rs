@@ -23,7 +23,7 @@ impl Expr {
                             Seq(_) | Select(_) => format!("{{{}}}", p)
                         }
                     }).collect::<Vec<String>>()
-                    .connect(" ")
+                    .join(" ")
             },
             Opt(ref e) => format!("[{}]", e.pretty()),
             Repeat(ref e) => {
@@ -42,7 +42,7 @@ impl Expr {
                             Tok(_) | Opt(_) | Repeat(_) | Seq(_) => p
                         }
                     }).collect::<Vec<String>>()
-                    .connect(" | ")
+                    .join(" | ")
             }
         }
     }
